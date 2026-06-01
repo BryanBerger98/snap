@@ -1,0 +1,9 @@
+# Snap plugin repo — local secrets & noise
+.env
+.DS_Store
+node_modules/
+*.log
+
+# Plan and tests
+plan/
+eval/

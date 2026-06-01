@@ -1,0 +1,13 @@
+{
+  "name": "snap",
+  "description": "Marketplace privée d'équipe pour le plugin Snap (workflow produit→livraison)",
+  "owner": { "name": "Bryan Berger", "email": "contact@bryanberger.dev" },
+  "plugins": [
+    {
+      "name": "snap",
+      "source": "./",
+      "description": "Workflow produit→livraison pour équipes logicielles",
+      "category": "workflow"
+    }
+  ]
+}

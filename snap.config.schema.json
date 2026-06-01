@@ -1,0 +1,252 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://snap.bryanberger.dev/snap.config.schema.json",
+  "title": "Snap project configuration",
+  "description": "Versioned, team-shared configuration for the Snap plugin (snap.config.json at project root).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "language", "docsPath", "ticketsPath", "providers", "define", "ticket", "wireframe", "ds", "design", "develop"],
+  "$comment": "The optional `remote` block holds non-secret locators provisioned for a remote backend (Notion db ids, Jira project key, GitHub project). Tokens never live here — they stay in .env (D-027).",
+  "properties": {
+    "version": {
+      "description": "Config schema version.",
+      "type": "integer",
+      "const": 1
+    },
+    "language": {
+      "description": "Language of generated artifacts.",
+      "type": "string",
+      "enum": ["fr", "en"],
+      "default": "fr"
+    },
+    "docsPath": {
+      "description": "Root folder for product docs inside the repo.",
+      "type": "string",
+      "default": "docs/product/"
+    },
+    "ticketsPath": {
+      "description": "Root folder for delivery tickets (epics/stories/tasks/bugs) inside the repo.",
+      "type": "string",
+      "default": "docs/delivery/"
+    },
+    "providers": {
+      "description": "External source-of-truth providers per artifact class. A backend is EXCLUSIVE per class (no mirror/sync — D-027). null = not configured yet.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["doc", "tickets", "repository", "wireframe", "design"],
+      "properties": {
+        "doc": {
+          "description": "Source of truth for the product docs (/define). repository = local Markdown; notion/affine = exclusively remote (D-027).",
+          "type": "string",
+          "enum": ["repository", "notion", "affine"],
+          "default": "repository"
+        },
+        "tickets": {
+          "description": "Source of truth for the delivery backlog (/ticket). repository = local Markdown; github-projects/jira = exclusively remote board (D-033).",
+          "type": "string",
+          "enum": ["repository", "github-projects", "jira"],
+          "default": "repository"
+        },
+        "repository": {
+          "description": "Code host for the delivery skills (/develop). Not the ticket board — that is `tickets`.",
+          "type": ["string", "null"],
+          "enum": ["github", "gitlab", null]
+        },
+        "wireframe": {
+          "type": ["string", "null"],
+          "enum": ["penpot", "figma", null],
+          "default": "penpot"
+        },
+        "design": {
+          "type": ["string", "null"],
+          "enum": ["penpot", "figma", null],
+          "default": "penpot"
+        }
+      }
+    },
+    "define": {
+      "description": "Behavior of the /define skill.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["order", "validation"],
+      "properties": {
+        "order": {
+          "type": "string",
+          "enum": ["vision-first"],
+          "default": "vision-first"
+        },
+        "validation": {
+          "type": "string",
+          "enum": ["status-checklist"],
+          "default": "status-checklist"
+        }
+      }
+    },
+    "ticket": {
+      "description": "Behavior of the /ticket skill.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hierarchy", "validation"],
+      "properties": {
+        "hierarchy": {
+          "type": "string",
+          "enum": ["epic-story-task-bug"],
+          "default": "epic-story-task-bug"
+        },
+        "validation": {
+          "type": "string",
+          "enum": ["status-checklist"],
+          "default": "status-checklist"
+        }
+      }
+    },
+    "wireframe": {
+      "description": "Behavior of the /wireframe skill. The active design tool is providers.wireframe; wireframes are authored in that tool through its MCP server (no in-repo artifact).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fidelity", "target"],
+      "properties": {
+        "fidelity": {
+          "type": "string",
+          "enum": ["lo-fi"],
+          "default": "lo-fi"
+        },
+        "target": {
+          "type": "string",
+          "enum": ["mcp"],
+          "default": "mcp"
+        }
+      }
+    },
+    "ds": {
+      "description": "Behavior of the /ds skill. The design system is authored in the active design tool (providers.design) through its MCP server (target: mcp); code is import source / export target only. tokenFormat is the canonical interchange format for code I/O; exportPath is where generated code lands in the user's app (null = ask).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "tokenFormat", "exportPath"],
+      "properties": {
+        "target": {
+          "type": "string",
+          "enum": ["mcp"],
+          "default": "mcp"
+        },
+        "tokenFormat": {
+          "type": "string",
+          "enum": ["dtcg"],
+          "default": "dtcg"
+        },
+        "exportPath": {
+          "type": ["string", "null"],
+          "default": null
+        }
+      }
+    },
+    "design": {
+      "description": "Behavior of the /design skill. Hi-Fi mockups are composed from the /ds design system and authored in the active design tool (providers.design — the same key and MCP servers as /ds) through its MCP server (target: mcp); no in-repo artifact. interactive sets how far interactivity goes: static (default, complete styled boards, no links) or prototype (clickable prototype links following the user flow, with graceful degradation if the MCP can't author links).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "fidelity", "interactive"],
+      "properties": {
+        "target": {
+          "type": "string",
+          "enum": ["mcp"],
+          "default": "mcp"
+        },
+        "fidelity": {
+          "type": "string",
+          "enum": ["hi-fi"],
+          "default": "hi-fi"
+        },
+        "interactive": {
+          "type": "string",
+          "enum": ["static", "prototype"],
+          "default": "static"
+        }
+      }
+    },
+    "develop": {
+      "description": "Behavior of the /develop skill (D-037). The code host is providers.repository (github/gitlab via gh/glab CLI); owner/repo are derived from the git remote, no secret here.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "description": "Control flow. gate = stop for human approval after the plan, before writing code; autonomous = run through to a draft PR/MR with no stop. A run argument overrides this.",
+          "type": "string",
+          "enum": ["gate", "autonomous"],
+          "default": "gate"
+        }
+      }
+    },
+    "review": {
+      "description": "Behavior of the /review skill (D-038). Code review over a local diff or a PR/MR (routed by providers.repository). Read-only by default; only the --fix run argument writes, and only to the working tree or the PR branch.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dimensions": {
+          "description": "Review axes run in parallel (one model-typed agent each). Defaults to all four; a team can narrow the set.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["correctness", "security", "conventions", "quality"]
+          },
+          "uniqueItems": true,
+          "default": ["correctness", "security", "conventions", "quality"]
+        }
+      }
+    },
+    "remote": {
+      "description": "Non-secret locators provisioned for a remote backend (D-032/D-033). Written by /snap:init; read by the snap-loader / snap-writer agents. Tokens never live here (they stay in .env).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "notion": {
+          "description": "Notion provisioning output (providers.doc = notion).",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "parentPageId": { "type": ["string", "null"] },
+            "briefPageId": { "type": ["string", "null"] },
+            "roadmapViewId": { "type": ["string", "null"] },
+            "databases": {
+              "description": "Map of entity class → Notion database id (personas, features, decisions).",
+              "type": "object",
+              "additionalProperties": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "affine": {
+          "description": "AFFiNE provisioning output (providers.doc = affine). Connector pending — kept parallel to notion.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "workspaceId": { "type": ["string", "null"] },
+            "briefDocId": { "type": ["string", "null"] },
+            "collections": {
+              "description": "Map of entity class → AFFiNE collection id (personas, features, decisions).",
+              "type": "object",
+              "additionalProperties": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "jira": {
+          "description": "Jira connection (providers.tickets = jira). Connects to an existing project; does not create one.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "cloudId": { "type": ["string", "null"] },
+            "projectKey": { "type": ["string", "null"] }
+          }
+        },
+        "githubProjects": {
+          "description": "GitHub Projects connection (providers.tickets = github-projects).",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "owner": { "type": ["string", "null"] },
+            "projectNumber": { "type": ["integer", "string", "null"] }
+          }
+        }
+      }
+    }
+  }
+}

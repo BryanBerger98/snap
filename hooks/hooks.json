@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/bootstrap-config.mjs\" \"${CLAUDE_PROJECT_DIR}\""
+          }
+        ]
+      }
+    ]
+  }
+}

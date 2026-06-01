@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "snap-penpot": {
+      "type": "http",
+      "url": "${PENPOT_MCP_URL:-http://localhost:4401/mcp}"
+    },
+    "snap-figma": {
+      "type": "http",
+      "url": "${FIGMA_MCP_URL:-https://mcp.figma.com/mcp}"
+    },
+    "snap-context7": {
+      "type": "http",
+      "url": "${CONTEXT7_MCP_URL:-https://mcp.context7.com/mcp}"
+    }
+  }
+}
