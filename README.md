@@ -4,86 +4,103 @@ Chaîne **produit → conception → développement → livraison** pour équipe
 livrée comme un plugin Claude Code. Snap expose une palette de skills invocables au `/`
 qui transforment une intention produit en artefacts versionnés, puis en code livré.
 
-> **État : v0.1.0 — P0/P1/P2/P3/P4/P5.** Squelette validable, plus les skills `/define`
-> (cadrage produit), `/ticket` (découpe en backlog de livraison), `/wireframe` (wireframes
-> Lo-Fi dans l'outil design, via MCP), `/ds` (design system dans l'outil via MCP, ponté au
-> code) et `/design` (maquettes Hi-Fi composées du DS, dans l'outil via MCP). La palette
-> s'étend skill par skill. Voir [`plan/`](plan/) pour les décisions et les specs techniques.
+```
+/define → /ticket → /wireframe → /ds → /design → /develop → /tests · /review · /qa
+└─ produit ─┘   └──── conception (Penpot/Figma via MCP) ────┘  └ dév ┘  └── qualité ──┘
 
-## Périmètre v1
-
-La v1 livre **`/define`** (cadrage produit), **`/ticket`** (backlog de livraison),
-**`/wireframe`** (wireframes Lo-Fi), **`/ds`** (design system) et **`/design`** (maquettes
-Hi-Fi), puis la palette s'étend skill par skill : `/develop`, `/review`, `/tests`, `/qa`,
-`/fulldev`.
-
-- **`/define`** écrit une base de connaissances Markdown versionnée (modèle d'entités
-  D-019) : Brief (PR-FAQ) → Personas → Features (catalogue + PRD) → Décisions (ADR),
-  avec frontmatter traçable et des vues régénérées (`INDEX.md`, `ROADMAP.md`).
-- **`/ticket`** découpe les Features `specified` en tickets (Epic → Story → Task/Bug)
-  sous `docs/delivery/`, avec liens tracés vers les Features et des vues régénérées
-  (`BACKLOG.md`, `BOARD.md`).
-- **`/wireframe`** dessine les écrans (Features) et leurs états (Stories) en wireframes
-  Lo-Fi **directement dans Penpot ou Figma** via le MCP de l'outil — aucun fichier dans le
-  repo : l'outil design est la source de vérité (provider réglé par `providers.wireframe`).
-- **`/ds`** construit le **design system** dans l'outil via MCP (tokens en styles de
-  librairie, tiers primitive→semantic→component ; composants avec variants/états bindés aux
-  tokens) — l'outil est la source de vérité (`providers.design`). Il **ponte au code** :
-  `import` amorce le DS depuis le code existant, `export` émet tokens (DTCG + CSS + Tailwind)
-  et un manifeste de composants dans l'app, via un codec déterministe sans dépendances.
-- **`/design`** compose les **maquettes Hi-Fi** dans l'outil via MCP en assemblant le design
-  system (`/ds`), la structure (`/wireframe`) et le contenu (`/define`/`/ticket`) : instances
-  de composants + token styles + contenu réel + tous les états. Structure **hybride** (upgrade
-  le board `/wireframe` s'il existe, sinon dérive du user-flow), interactivité **configurable**
-  (`design.interactive` : `static` par défaut, `prototype` pour un prototype cliquable). Même
-  clé `providers.design` que `/ds` ; un composant manquant est routé vers `/ds`.
-
-## Installation (équipe)
-
-```bash
-/plugin marketplace add <org>/snap
-/plugin install snap@snap
+        /fulldev orchestre develop → (tests ∥ review) → qa en boucle jusqu'au vert
 ```
 
-Développement local :
+> **v2.0.0 — palette complète.** Les 11 skills sont livrées : `/snap:init`, `/define`,
+> `/ticket`, `/wireframe`, `/ds`, `/design`, `/develop`, `/review`, `/tests`, `/qa`,
+> `/fulldev`.
 
-```bash
-claude --plugin-dir ./snap          # charge le plugin sans l'installer
-claude plugin validate ./snap --strict
+## Installation
+
+```text
+/plugin marketplace add BryanBerger98/claude-plugins
+/plugin install snap@bryanberger
 ```
 
-## Configuration
+> La marketplace s'ajoute depuis le repo `BryanBerger98/claude-plugins`. L'alias
+> `bryanberger` (défini dans son `marketplace.json`) sert à `snap@bryanberger`.
 
-Au premier démarrage, le hook `SessionStart` crée à la racine du projet :
-
-- `snap.config.json` — config versionnée, partagée par l'équipe (langue, `docsPath`,
-  providers, comportement de `/define`). Schéma : [`snap.config.schema.json`](snap.config.schema.json).
-- `.env.example` — gabarit de secrets (aucun requis pour `/define` v1).
-- garde-fou : `.env` est ajouté au `.gitignore` du projet (anti-fuite).
-
-Pour un setup **interactif** (choisir la langue et le `docsPath`, ou reconfigurer), lance :
+Développement local (sans installer) :
 
 ```bash
+claude --plugin-dir ./snap                 # charge le plugin
+claude plugin validate ./snap --strict     # valide le manifeste
+```
+
+## Premier setup
+
+Au premier démarrage, le hook `SessionStart` crée en silence à la racine du projet :
+
+- `snap.config.json` — config versionnée, partagée par l'équipe (langue, chemins,
+  providers, modes). Schéma : [`snap.config.schema.json`](snap.config.schema.json).
+- `.env.example` — gabarit de secrets.
+- garde-fou : `.env` ajouté au `.gitignore` (anti-fuite — aucun token ne va dans la config).
+
+Pour choisir la langue, les chemins, les providers et provisionner les backends distants :
+
+```text
 /snap:init
 ```
 
-Idempotent — le hook pose les défauts en silence, `/snap:init` te laisse choisir.
+Idempotent — relancer est sûr. Détails : [`docs/skills/init.md`](docs/skills/init.md).
+
+## Utilisation
+
+Chaque skill est une commande `/` autonome, mais elles s'enchaînent. Tape la forme courte
+(`/define`) ; en cas de collision avec une autre skill, utilise `/snap:<skill>`.
+
+| Skill | Rôle |
+| --- | --- |
+| [`/define`](docs/skills/define.md) | Base de connaissances produit (PR-FAQ, personas, features, ADR) |
+| [`/ticket`](docs/skills/ticket.md) | Backlog livrable (Epics → Stories → Tasks/Bugs) |
+| [`/wireframe`](docs/skills/wireframe.md) | Wireframes Lo-Fi dans l'outil design (MCP) |
+| [`/ds`](docs/skills/ds.md) | Design system dans l'outil design (MCP) + codec de tokens |
+| [`/design`](docs/skills/design.md) | Maquettes Hi-Fi composées du DS (MCP) |
+| [`/develop`](docs/skills/develop.md) | Un ticket → code sur branche + PR/MR draft |
+| [`/review`](docs/skills/review.md) | Revue de diff (4 dimensions en parallèle) |
+| [`/tests`](docs/skills/tests.md) | Écrit les tests et boucle jusqu'au vert |
+| [`/qa`](docs/skills/qa.md) | Lance l'app et valide les critères d'acceptation en live |
+| [`/fulldev`](docs/skills/fulldev.md) | Orchestre develop → tests ∥ review → qa en boucle |
+
+📖 **Documentation complète** : [`docs/`](docs/README.md) — une page par skill et le rôle
+de chaque [agent](docs/agents.md).
+
+## Configuration
+
+Tout vit dans `snap.config.json` (versionné, partagé). Multi-provider **exclusif** — un
+provider par domaine :
+
+| Domaine | Clé | Choix |
+| --- | --- | --- |
+| Docs produit | `providers.doc` | `repository` · `notion` · `affine` |
+| Tickets | `providers.tickets` | `github-projects` · `gitlab` · `jira` · `repository` |
+| Design | `providers.design` / `providers.wireframe` | `penpot` · `figma` (via MCP) |
+| Code host | `providers.repository` | `github` · `gitlab` |
+
+Modes des skills dév/qualité (`develop`, `tests`, `qa`, `review`, `fulldev`) : `gate`
+(s'arrête pour validation humaine) ou `autonomous`. Les secrets (tokens) vont dans `.env`,
+**jamais** dans `snap.config.json` ni `.mcp.json`.
 
 ## Architecture
 
-- `.claude-plugin/` — manifeste + marketplace.
-- `.mcp.json` — serveurs MCP des outils design (`snap-penpot`, `snap-figma`) que
-  `/wireframe` (clé `providers.wireframe`) et `/ds` + `/design` (clé `providers.design`)
-  pilotent ; URLs surchargeables par variables d'env, le serveur inutilisé est inerte.
-- `skills/` — un dossier par skill (`init/` amorçage config, `define/` cadrage produit,
-  `ticket/` découpe en backlog, `wireframe/` wireframes Lo-Fi via MCP, `ds/` design system
-  via MCP + codec de tokens `tokens-codec.mjs`, `design/` maquettes Hi-Fi via MCP composées
-  du DS).
-- `agents/` — subagents (`snap-drafter`).
+- `.claude-plugin/` — manifeste du plugin (`plugin.json`).
+- `.mcp.json` — serveurs MCP des outils design (`snap-penpot`, `snap-figma`) pilotés par
+  `/wireframe`, `/ds` et `/design` ; URLs surchargeables par variables d'env.
+- `skills/` — un dossier par skill (`<skill>/SKILL.md` + templates éventuels).
+- `agents/` — 18 subagents (`snap-*`), modèle choisi par tâche (haiku/sonnet/opus). Voir
+  [`docs/agents.md`](docs/agents.md).
+- `reference/` — guides chargés à la demande par les skills (pipelines, conventions,
+  persistance par provider).
 - `hooks/` — `SessionStart` → bootstrap de la config.
-- `scripts/` — utilitaires Node (`.mjs`, cross-platform) : `bootstrap-config`,
-  `init-config`, et `lib/frontmatter.mjs` (parser YAML partagé par les skills).
-- `plan/` — décisions (ADR léger), specs techniques, diagrammes d'architecture.
+- `scripts/` — cœur déterministe Node (`.mjs`, cross-platform, sans dépendances) :
+  `bootstrap-config`, `init-config`, `fulldev-state` (machine à états de la boucle), et
+  `lib/` (frontmatter, entités).
+- `plan/` — décisions (ADR léger), specs techniques.
 
 ## Licence
 
