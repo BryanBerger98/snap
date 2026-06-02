@@ -11,9 +11,10 @@ qui transforment une intention produit en artefacts versionnés, puis en code li
         /fulldev orchestre develop → (tests ∥ review) → qa en boucle jusqu'au vert
 ```
 
-> **v2.0.0 — palette complète.** Les 11 skills sont livrées : `/snap:init`, `/define`,
-> `/ticket`, `/wireframe`, `/ds`, `/design`, `/develop`, `/review`, `/tests`, `/qa`,
-> `/fulldev`.
+> **v2.1.0 — `/define` en mode discovery.** Les 11 skills sont livrées : `/snap:init`,
+> `/define`, `/ticket`, `/wireframe`, `/ds`, `/design`, `/develop`, `/review`, `/tests`,
+> `/qa`, `/fulldev`. `/define` mène désormais une vraie session de cadrage produit
+> (Working Backwards, itératif) en greenfield comme en brownfield.
 
 ## Installation
 
