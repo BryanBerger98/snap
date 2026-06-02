@@ -1,7 +1,7 @@
 {
   "name": "snap",
   "displayName": "Snap",
-  "version": "0.1.0",
+  "version": "2.0.0",
   "description": "Chaîne produit→conception→dev→livraison pour équipes logicielles",
   "author": { "name": "Bryan Berger", "email": "contact@bryanberger.dev" },
   "keywords": ["product", "prd", "tickets", "design-system", "workflow", "delivery"],
