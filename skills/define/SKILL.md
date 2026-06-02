@@ -3,9 +3,11 @@ name: define
 description: >
   Define product specifications as a versioned Markdown knowledge base — Brief
   (PR-FAQ), Personas, Features (catalogue + PRD), Decisions (ADR) — plus a
-  generated Roadmap and Index. Use to frame a new product or evolve one before
-  development. Optional argument = entity type; with no argument, runs the full
-  greenfield playbook.
+  generated Roadmap and Index. Acts as a senior product manager: runs an
+  iterative discovery session (Working Backwards) to frame a new product
+  (greenfield) or reverse-document an existing one from its codebase (brownfield).
+  Optional argument = entity type; with no argument, runs the full discovery
+  playbook.
 argument-hint: "[brief|personas|features|decisions|roadmap]"
 disable-model-invocation: false
 allowed-tools: Read, Write, Edit, Glob, Grep, AskUserQuestion, Task, Bash(git *), Bash(node *)
@@ -19,16 +21,36 @@ entity model is the Markdown rendering of `schema-documentation-produit.md`
 and Index are **generated views**, never authored by hand. Output is opinionated
 and **frozen** — fill the templates, do not invent new section structures.
 
+## Posture — run a discovery session, not a form
+
+You act as a **senior product manager facilitating a discovery session**. The
+templates are the *output*; the *process* that fills them with real substance lives
+in `reference/discovery.md` — **read it before interviewing.** Non-negotiables:
+
+- **Lead and dig.** Drive the framing (Working Backwards), challenge weak answers,
+  probe every answer (`why` · `for whom exactly` · `how do we measure it` · `what's
+  the riskiest assumption`). Asking only "project name?" + "main features?" is the
+  failure this skill must avoid.
+- **Iterate, don't one-shot.** Per major entity: elicit → dig → **restate your
+  understanding and get confirmation** → draft → validate. Expect 2–4 rounds for the
+  Brief, not one. Never write a structurally-complete but hollow entity.
+- **Right channel.** Open conversation (prose) is the default for vision, pains,
+  value, risks. Reserve `AskUserQuestion` for discrete forks (Now/Next/Later
+  bucketing, picking named options, yes/no gates) — never funnel open discovery
+  through closed multiple-choice.
+
 ## v1 entities
 
 `brief` (PR-FAQ, singleton) · `persona` · `feature` (catalogue; `depth` stub or
 specified — the PRD + user flow live in the feature body) · `decision` (ADR,
 append-only). Deferred (JIT, schema §7): outcomes, opportunities, releases,
-glossary. v1 is **greenfield**; brownfield fields exist (`mode`/`source`) but its
-playbook comes later.
+glossary. Two playbooks: **greenfield** (new product, step 4) and **brownfield**
+(reverse-document an existing codebase, step 4-ter — uses `source: inventoried`).
 
 ## Frozen assets — read before drafting
 
+- `reference/discovery.md` — **the interview method** (posture, the iterative
+  greenfield loop, the brownfield audit loop, per-entity probe banks). Read first.
 - `templates/<type>.md` — exact section structure per entity (`brief`, `persona`,
   `feature`, `adr`).
 - `reference/id-scheme.md` — argument↔type↔dir↔prefix, numbering, slugs, epics.
@@ -73,23 +95,41 @@ the pre-run state; entities you create this run are already known to you.)
   run will write (the gate needs bodies). It returns the compact map and writes
   `.snap/tmp/state.json`. Use that map as the state. See **Remote backend** below.
 - Read any brief passed as free-text context.
-- If the map is empty, treat the base as greenfield (step 4). For a remote base that
+- If the map is empty, the base is new — let step 3 pick greenfield vs brownfield
+  (an empty doc map over an existing codebase is brownfield). For a remote base that
   is empty/unprovisioned, route the user to `/snap:init` first.
 
-### 3. Determine scope
+### 3. Determine scope & mode
 - Argument = a type → target that entity (sub-commands below; singular or plural).
-- No argument → full **greenfield playbook** (step 4).
+- No argument → full discovery playbook. **Pick the mode** before interviewing:
+  - The doc map is empty **and** the repo holds a real codebase (manifests, source
+    beyond Snap's own config/docs) → **brownfield** (step 4-ter): audit the code
+    first, then frame. Confirm the mode with the user in one line before digging.
+  - Empty doc map, no meaningful codebase → **greenfield** (step 4).
+  - Non-empty doc map → you're evolving an existing base; target the in-scope
+    entities and re-run the relevant loop for them.
 
-### 4. Greenfield playbook (full run)
-Produce in this order, interviewing only the gaps (`AskUserQuestion`, ≤ 4 q/round):
-1. **Brief** (`BRF-001`, PR-FAQ) — problem + vision + North Star in the FAQ.
-2. **Personas** (`PER-*`, 1–3, kept `proto`) — `parents: [BRF-001]`.
+### 4. Greenfield playbook (iterative discovery)
+Run the **discovery loop from `reference/discovery.md`** — this is not a single
+pass through a form. For each entity below: elicit with open questions → **dig**
+into every answer → restate your understanding and get confirmation → draft →
+validate. Expect several rounds, especially on the Brief. Don't truncate the
+interview because an answer exists — truncate only when it's concrete and confirmed.
+
+Produce in this order (full probe banks in `discovery.md`):
+1. **Brief** (`BRF-001`, PR-FAQ) — the anchor; spend the most time here. Dig
+   problem (whose pain, alternatives, cost of inaction), why-now, target user,
+   one-line value, North Star, explicit non-goals, top risk. Confirm before writing.
+2. **Personas** (`PER-*`, 1–3, kept `proto`) — `parents: [BRF-001]`. JTBD, pains,
+   gains, triggers, key scenarios per persona.
 3. **Features catalogue** (`FEAT-*`, `depth: stub`) — title + persona +
-   `value_hypothesis` only; one line each. Mark each `horizon` (Now/Next/Later).
+   `value_hypothesis` only; one line each. Challenge each against a persona pain.
+   Bucket each `horizon` (Now/Next/Later) — good moment for `AskUserQuestion`.
 4. **Specify the `Now` features** (`depth: specified`) — fill the PRD body
    (TL;DR, problème, objectif, périmètre, user flow Mermaid, user stories,
    critères d'acceptation, risques, hors-périmètre).
-5. **Decisions** (`ADR-*`) — capture notable choices as append-only ADRs.
+5. **Decisions** (`ADR-*`) — capture notable choices made during the session as
+   append-only ADRs.
 6. Lint (step 5), then regenerate the views (step 6).
 
 ### 4-bis. Write each entity
@@ -111,6 +151,26 @@ Produce in this order, interviewing only the gaps (`AskUserQuestion`, ≤ 4 q/ro
 - **Remote backend:** in `notion`/`affine` mode do **not** `Write` files — the
   `snap-writer` fan-out (see **Remote backend**) renders and persists each entity in
   the platform. The interview, id allocation and idempotence stay in this context.
+
+### 4-ter. Brownfield playbook (existing project)
+The product exists in code; the docs don't. **Reconstruct the documentation from
+reality, then frame where it's going — the gap is the roadmap.** Full method +
+probe banks in `reference/discovery.md` ("The brownfield loop"). Sequence:
+1. **Audit the codebase** (read-only) — spawn an `Explore` subagent over README,
+   manifests, entrypoints, routes, domain models, config and any existing notes.
+   Come to the user with a *draft understanding*, not a blank questionnaire.
+2. **Brief** — capture **`Vision implicite`** (what the product optimizes today,
+   from the audit) **vs `Vision cible`** (interview the user). The delta is the
+   roadmap. (The brief template's brownfield subsections, `brief.md`.)
+3. **Inventory existing features** (`source: inventoried`) — shipped capabilities
+   as feature entities; already-live → `horizon: Done`, `status: shipped`, `stub`.
+4. **Personas** — derive from real usage/evidence where available (`niveau_preuve:
+   entretiens`/`data` if the user has it), else `proto`.
+5. **Roadmap = the gap** — features closing implicit→cible become the
+   `Now`/`Next`/`Later` catalogue (`source: discovered`); specify the `Now` ones
+   (greenfield step 4). Capture audit findings + sequencing as ADRs.
+
+Both playbooks write via step 4-bis, then lint (step 5) and regenerate views (step 6).
 
 ### 5. Lint (deterministic gate)
 - **Repo:** run
@@ -140,7 +200,7 @@ Report entities created/updated, their statuses, their relations, the lint resul
 
 | Invocation | Effect |
 | --- | --- |
-| `/define` | full greenfield playbook |
+| `/define` | full discovery playbook — greenfield or brownfield, mode auto-detected (step 3) |
 | `/define brief` | (re)generate the Brief / PR-FAQ (singleton) |
 | `/define personas` | (re)generate / extend personas |
 | `/define features` | extend the feature catalogue (stubs) and/or specify a `Now` feature |
@@ -179,6 +239,9 @@ Secrets: the provider token lives in `.env` (held by the MCP server); config hol
 non-secret locators (`remote.notion` db ids). Never write a token to config or `.mcp.json`.
 
 ## Rules
+- **Discovery over forms.** Run the iterative interview from `reference/discovery.md`;
+  never write a structurally-complete but hollow entity, and confirm the Brief's
+  problem + vision + North Star with the user before writing `BRF-001`.
 - Never overwrite an `approved`/`frozen` Brief without explicit confirmation.
 - Decisions are append-only: supersede, never rewrite a settled ADR.
 - Never write outside `<docsPath>`; never hand-edit `INDEX.md` / `ROADMAP.md`.

@@ -3,7 +3,23 @@
 All notable changes to the Snap plugin are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/), semver versioning.
 
-## [Unreleased]
+## [2.1.0] — 2026-06-02
+
+### Changed — `/define` now runs a real discovery session
+- **Posture rewrite.** `/define` acts as a senior product manager facilitating an
+  iterative Working-Backwards discovery, not a fill-in-the-blanks form. New
+  `skills/define/reference/discovery.md` carries the method: per-entity probe banks,
+  the elicit → dig → restate → confirm → draft loop, and a quality bar for when to
+  stop digging. Removed the `SKILL.md` line that capped the interview to "only the
+  gaps (≤ 4 q/round)" — the root cause of shallow, one-shot framing.
+- **Brownfield playbook (new).** `/define` now reverse-documents an existing
+  codebase: audit the repo → infer the implicit vision → interview the target vision
+  → inventory shipped features (`source: inventoried`) → the implicit→cible gap
+  becomes the roadmap. Mode (greenfield vs brownfield) is auto-detected at step 3.
+- Open conversation is the default elicitation channel; `AskUserQuestion` is reserved
+  for discrete forks (horizon bucketing, named options, yes/no gates).
+
+## [2.0.0] — 2026-06-02
 
 ### Added (P0 — Scaffolding)
 - Plugin manifest (`.claude-plugin/plugin.json`) — loadable, validatable plugin skeleton.
