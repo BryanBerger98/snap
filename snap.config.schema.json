@@ -194,6 +194,92 @@
         }
       }
     },
+    "tests": {
+      "description": "Behavior of the /tests skill (D-039). Writes tests from a ticket's acceptance criteria or a diff/PR, runs them, and loops to green — fixing only the tests, never the source. Coverage is acceptance-criteria coverage (not line coverage).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "levels": {
+          "description": "Test levels written in parallel (one model-typed tester each). Defaults to all three; a team can narrow the set.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["unit", "integration", "e2e"]
+          },
+          "uniqueItems": true,
+          "default": ["unit", "integration", "e2e"]
+        },
+        "mode": {
+          "description": "Control flow for the write step. gate = present the test plan and stop for approval before writing; autonomous = write straight through. Absent → inherits develop.mode at runtime. A run argument overrides this.",
+          "type": "string",
+          "enum": ["gate", "autonomous"]
+        },
+        "maxIterations": {
+          "description": "Maximum write+run+fix iterations of the green loop before remaining test-bugs are recorded as test debt (they never affect the verdict).",
+          "type": "integer",
+          "minimum": 0,
+          "default": 3
+        }
+      }
+    },
+    "qa": {
+      "description": "Behavior of the /qa skill (D-040). Validates a ticket's acceptance criteria against the RUNNING product by exercising each criterion live (web/api/cli), then emits a binary verdict (accepted|rejected) and transitions the ticket. Never edits the source; runs on a test/staging profile only (never prod). One pass — no internal loop (the retry loop belongs to /fulldev).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "surfaces": {
+          "description": "Surfaces exercised in parallel (one validator each); each acceptance criterion is routed to a surface. Defaults to all three; a team can narrow the set.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["web", "api", "cli"]
+          },
+          "uniqueItems": true,
+          "default": ["web", "api", "cli"]
+        },
+        "mode": {
+          "description": "Control flow for the app boot. gate = present the QA plan and stop for approval BEFORE booting the app (side effects); autonomous = run straight through. Absent → inherits develop.mode at runtime. A run argument overrides this.",
+          "type": "string",
+          "enum": ["gate", "autonomous"]
+        },
+        "run": {
+          "description": "How to run the app under test (test/staging profile only — never prod). Optional: when absent, the run command is detected by snap-explorer and the base URL can be passed via --base-url. cmd = start command; url = base URL of an already-running instance (reuse, no boot/teardown); readyWhen = health path or readiness signal; teardown = explicit stop command (else the booted process group is killed).",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "cmd": { "type": ["string", "null"] },
+            "url": { "type": ["string", "null"] },
+            "readyWhen": { "type": ["string", "null"] },
+            "teardown": { "type": ["string", "null"] }
+          }
+        }
+      }
+    },
+    "fulldev": {
+      "description": "Behavior of the /fulldev orchestrator (D-041). Chains develop → tests → review → qa in a bounded loop until every gate is green or the budget is spent. It is the only looper; the sub-skills are single-pass verdict emitters. Never edits the source or the gates, never merges (the draft PR is left for a human).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "description": "Control flow, OVERRIDING each sub-skill's own mode. gate = each sub-skill stops at its own gate for approval; autonomous = run the chain straight through. A run argument overrides this.",
+          "type": "string",
+          "enum": ["gate", "autonomous"],
+          "default": "gate"
+        },
+        "maxCycles": {
+          "description": "Global budget: the maximum number of /develop passes in a run before the loop stops (stopped-budget).",
+          "type": "integer",
+          "minimum": 1,
+          "default": 5
+        },
+        "maxPerGate": {
+          "description": "Per-gate cap: the number of red verdicts a single gate (tests/review/qa) may return before it is blocked (no longer re-run); a blocked gate makes the global green unreachable (stopped-blocked).",
+          "type": "integer",
+          "minimum": 1,
+          "default": 3
+        }
+      }
+    },
     "remote": {
       "description": "Non-secret locators provisioned for a remote backend (D-032/D-033). Written by /snap:init; read by the snap-loader / snap-writer agents. Tokens never live here (they stay in .env).",
       "type": "object",

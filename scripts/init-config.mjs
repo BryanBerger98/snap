@@ -11,6 +11,10 @@
  *          [--ticketsProvider repository|github-projects|jira]
  *          [--repoProvider github|gitlab|auto] [--developMode gate|autonomous]
  *          [--reviewDimensions correctness,security,conventions,quality]
+ *          [--testLevels unit,integration,e2e] [--testMode gate|autonomous]
+ *          [--testMaxIterations <n>]
+ *          [--qaSurfaces web,api,cli] [--qaMode gate|autonomous]
+ *          [--fulldevMode gate|autonomous] [--fulldevMaxCycles <n>] [--fulldevMaxPerGate <n>]
  *          [--remoteJson <path>] [--wireframeProvider penpot|figma]
  *          [--designProvider penpot|figma] [--dsExportPath <path>]
  *          [--designInteractive static|prototype]
@@ -39,6 +43,14 @@ function parseArgs(argv) {
     else if (a === "--repoProvider") out.repoProvider = argv[++i];
     else if (a === "--developMode") out.developMode = argv[++i];
     else if (a === "--reviewDimensions") out.reviewDimensions = argv[++i];
+    else if (a === "--testLevels") out.testLevels = argv[++i];
+    else if (a === "--testMode") out.testMode = argv[++i];
+    else if (a === "--testMaxIterations") out.testMaxIterations = argv[++i];
+    else if (a === "--qaSurfaces") out.qaSurfaces = argv[++i];
+    else if (a === "--qaMode") out.qaMode = argv[++i];
+    else if (a === "--fulldevMode") out.fulldevMode = argv[++i];
+    else if (a === "--fulldevMaxCycles") out.fulldevMaxCycles = argv[++i];
+    else if (a === "--fulldevMaxPerGate") out.fulldevMaxPerGate = argv[++i];
     else if (a === "--remoteJson") out.remoteJson = argv[++i];
     else if (a === "--wireframeProvider") out.wireframeProvider = argv[++i];
     else if (a === "--designProvider") out.designProvider = argv[++i];
@@ -72,6 +84,9 @@ const DEFAULT_CONFIG = {
   design: { target: "mcp", fidelity: "hi-fi", interactive: "static" },
   develop: { mode: "gate" },
   review: { dimensions: ["correctness", "security", "conventions", "quality"] },
+  tests: { levels: ["unit", "integration", "e2e"], maxIterations: 3 },
+  qa: { surfaces: ["web", "api", "cli"] },
+  fulldev: { mode: "gate", maxCycles: 5, maxPerGate: 3 },
 };
 
 const configPath = join(projectDir, "snap.config.json");
@@ -182,6 +197,128 @@ if (argv.reviewDimensions != null) {
       config.review.dimensions = dims;
       changes.push(`review.dimensions=[${dims.join(",")}]`);
     }
+  }
+}
+
+const TEST_LEVELS = ["unit", "integration", "e2e"];
+function ensureTests() {
+  if (config.tests == null || typeof config.tests !== "object") config.tests = { ...DEFAULT_CONFIG.tests };
+}
+
+if (argv.testLevels != null) {
+  const picked = String(argv.testLevels)
+    .split(",")
+    .map((l) => l.trim().toLowerCase())
+    .filter((l) => l !== "");
+  const valid = picked.filter((l) => TEST_LEVELS.includes(l));
+  const invalid = picked.filter((l) => !TEST_LEVELS.includes(l));
+  for (const l of invalid) {
+    console.warn(`[snap] init: ignored invalid test level "${l}" (expected ${TEST_LEVELS.join("|")}).`);
+  }
+  // de-dupe, preserve canonical order unit→integration→e2e
+  const levels = TEST_LEVELS.filter((l) => valid.includes(l));
+  if (levels.length) {
+    ensureTests();
+    if (JSON.stringify(config.tests.levels) !== JSON.stringify(levels)) {
+      config.tests.levels = levels;
+      changes.push(`tests.levels=[${levels.join(",")}]`);
+    }
+  }
+}
+
+const TEST_MODES = ["gate", "autonomous"];
+if (argv.testMode != null) {
+  const m = String(argv.testMode).toLowerCase();
+  if (TEST_MODES.includes(m)) {
+    ensureTests();
+    if (config.tests.mode !== m) { config.tests.mode = m; changes.push(`tests.mode=${m}`); }
+  } else {
+    console.warn(`[snap] init: ignored invalid --testMode "${argv.testMode}" (expected ${TEST_MODES.join("|")}).`);
+  }
+}
+
+if (argv.testMaxIterations != null) {
+  const raw = String(argv.testMaxIterations).trim();
+  const n = Number(raw);
+  if (raw !== "" && Number.isInteger(n) && n >= 0) {
+    ensureTests();
+    if (config.tests.maxIterations !== n) { config.tests.maxIterations = n; changes.push(`tests.maxIterations=${n}`); }
+  } else {
+    console.warn(`[snap] init: ignored invalid --testMaxIterations "${argv.testMaxIterations}" (expected an integer ≥ 0).`);
+  }
+}
+
+const QA_SURFACES = ["web", "api", "cli"];
+function ensureQa() {
+  if (config.qa == null || typeof config.qa !== "object") config.qa = { ...DEFAULT_CONFIG.qa };
+}
+
+if (argv.qaSurfaces != null) {
+  const picked = String(argv.qaSurfaces)
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter((s) => s !== "");
+  const valid = picked.filter((s) => QA_SURFACES.includes(s));
+  const invalid = picked.filter((s) => !QA_SURFACES.includes(s));
+  for (const s of invalid) {
+    console.warn(`[snap] init: ignored invalid qa surface "${s}" (expected ${QA_SURFACES.join("|")}).`);
+  }
+  // de-dupe, preserve canonical order web→api→cli
+  const surfaces = QA_SURFACES.filter((s) => valid.includes(s));
+  if (surfaces.length) {
+    ensureQa();
+    if (JSON.stringify(config.qa.surfaces) !== JSON.stringify(surfaces)) {
+      config.qa.surfaces = surfaces;
+      changes.push(`qa.surfaces=[${surfaces.join(",")}]`);
+    }
+  }
+}
+
+const QA_MODES = ["gate", "autonomous"];
+if (argv.qaMode != null) {
+  const m = String(argv.qaMode).toLowerCase();
+  if (QA_MODES.includes(m)) {
+    ensureQa();
+    if (config.qa.mode !== m) { config.qa.mode = m; changes.push(`qa.mode=${m}`); }
+  } else {
+    console.warn(`[snap] init: ignored invalid --qaMode "${argv.qaMode}" (expected ${QA_MODES.join("|")}).`);
+  }
+}
+
+function ensureFulldev() {
+  if (config.fulldev == null || typeof config.fulldev !== "object") config.fulldev = { ...DEFAULT_CONFIG.fulldev };
+}
+
+const FULLDEV_MODES = ["gate", "autonomous"];
+if (argv.fulldevMode != null) {
+  const m = String(argv.fulldevMode).toLowerCase();
+  if (FULLDEV_MODES.includes(m)) {
+    ensureFulldev();
+    if (config.fulldev.mode !== m) { config.fulldev.mode = m; changes.push(`fulldev.mode=${m}`); }
+  } else {
+    console.warn(`[snap] init: ignored invalid --fulldevMode "${argv.fulldevMode}" (expected ${FULLDEV_MODES.join("|")}).`);
+  }
+}
+
+if (argv.fulldevMaxCycles != null) {
+  const raw = String(argv.fulldevMaxCycles).trim();
+  const n = Number(raw);
+  if (raw !== "" && Number.isInteger(n) && n >= 1) {
+    ensureFulldev();
+    if (config.fulldev.maxCycles !== n) { config.fulldev.maxCycles = n; changes.push(`fulldev.maxCycles=${n}`); }
+  } else {
+    console.warn(`[snap] init: ignored invalid --fulldevMaxCycles "${argv.fulldevMaxCycles}" (expected an integer ≥ 1).`);
+  }
+}
+
+if (argv.fulldevMaxPerGate != null) {
+  const raw = String(argv.fulldevMaxPerGate).trim();
+  const n = Number(raw);
+  if (raw !== "" && Number.isInteger(n) && n >= 1) {
+    ensureFulldev();
+    if (config.fulldev.maxPerGate !== n) { config.fulldev.maxPerGate = n; changes.push(`fulldev.maxPerGate=${n}`); }
+  } else {
+    console.warn(`[snap] init: ignored invalid --fulldevMaxPerGate "${argv.fulldevMaxPerGate}" (expected an integer ≥ 1).`);
   }
 }
 

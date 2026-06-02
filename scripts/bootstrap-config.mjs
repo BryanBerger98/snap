@@ -63,6 +63,18 @@ const DEFAULT_CONFIG = {
   review: {
     dimensions: ["correctness", "security", "conventions", "quality"],
   },
+  tests: {
+    levels: ["unit", "integration", "e2e"],
+    maxIterations: 3,
+  },
+  qa: {
+    surfaces: ["web", "api", "cli"],
+  },
+  fulldev: {
+    mode: "gate",
+    maxCycles: 5,
+    maxPerGate: 3,
+  },
 };
 
 const ENV_EXAMPLE = `# Snap — secrets template (copy to .env, keep .env out of git).

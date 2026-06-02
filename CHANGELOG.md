@@ -261,6 +261,140 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), semver versioni
   `/review` posts comments; it never approves a PR. Tokens never enter `snap.config.json` or
   `.mcp.json` (D-033). Headless-tested (config scripts + schema); live `/review` runs pending.
 
+### Added (P8 — `/tests`, second quality skill, D-039)
+- `skills/tests/SKILL.md`: user-only `/snap:tests [<TICKET-ID> | <PR#/MR!>] [--base <branch>]
+  [--levels u,i,e] [--mode gate|autonomous]` — **writes** the tests a change needs, runs them,
+  and **loops to green**, repairing only the tests, never the source. Pipeline: resolve target
+  (no arg → local `git diff`, `source=change`; a PR/MR number → `gh pr diff` / `glab mr diff`;
+  a TICKET-ID → the ticket's **acceptance criteria**, `source=ca`) → optional ticket digest →
+  map the runner (`snap-explorer`) → plan coverage (write gate) → fan out one tester per level
+  → run the suite → triage failures → synthesize + deliver.
+- Two model-typed subagents (`agents/`): `snap-tester` (Sonnet — writes/repairs the tests of
+  **one** level from acceptance criteria/diff + the codebase map; also runs in **fix mode** with
+  `triage.json`; **never touches the source**) and `snap-test-triage` (Sonnet — read-only;
+  classifies each red failure as a **test-bug** (repair) or a **source-bug** (the code violates a
+  cited acceptance criterion — exit the loop)). Reuses `snap-digest` (acceptance criteria) and
+  `snap-explorer` (runner/dir/cmd). The **suite run is deterministic** — done by the skill (Bash),
+  not an agent. Test code, diffs, and suite logs stay in the agents' context; only small JSON
+  contracts cross (`.snap/tmp/{tests-target,tests-<level>,triage,tests-report}.json`).
+- Two progressive-disclosure references (`reference/`): `tests-repo.md` (the `gh`/`glab` recipe —
+  PR/MR diff fetch, metadata, the `pr`-path test commit+push to the existing branch) and
+  `tests-pipeline.md` (the scratch contracts, the CA-coverage verdict model, the write+run+green
+  loop, the `/fulldev` loop-back contract).
+- **Output templates** (`skills/tests/templates/`): three frozen templates — `test-plan.md` (the
+  coverage plan presented at the write gate: CA × level × file), `report.md` (the local report +
+  conversation-summary base: CA-coverage table, suite stats, verdict, failures), and
+  `commit-message.txt` (conventional `test(scope): … (<TICKET>)` for the `pr` path). One file per
+  output, filled from the JSON contracts; the test files themselves are **not** templated (written
+  by `snap-tester` in the repo's own runner/conventions).
+- **Green loop + verdict**: the skill runs the suite, and on red spawns `snap-test-triage`;
+  `test-bug` failures are re-handed to `snap-tester` (fix mode) and the suite re-run, bounded by
+  `tests.maxIterations` (default 3, remaining test-bugs logged as test debt — no silent
+  truncation); a `source-bug` exits the loop. The report verdict is `tests-failed` when any
+  `source-bug` exists or any in-scope criterion is uncoverable without a source change (drives the
+  `/fulldev` loop back to `/develop`), else `passed`. **Coverage = acceptance-criteria coverage**,
+  not line coverage (out of scope v1).
+- Config: new top-level **`tests`** block (`levels` array default all three, optional `mode`
+  inheriting `develop.mode`, `maxIterations` default 3) in the JSON Schema + both config scripts;
+  `init-config.mjs` gains `--testLevels a,b,c` / `--testMode gate|autonomous` /
+  `--testMaxIterations <n>`; `/snap:init` interviews them.
+- Security: writes **test files only**, never the source (a `source-bug` exits to the verdict, not
+  a source edit — the `/develop` frontier); `pr` mode commits+pushes to the **existing** PR branch
+  only (never the default branch, never `--force`, never a new PR/merge/approval); `local` mode
+  leaves tests in the working tree. Tokens never enter `snap.config.json` or `.mcp.json` (D-033).
+  Headless-tested (config scripts + schema); live `/tests` runs pending.
+
+### Added (P9 — `/qa`, third quality skill, D-040)
+- `skills/qa/SKILL.md`: user-only `/snap:qa [<TICKET-ID> | <PR#/MR!>] [--base-url <url>]
+  [--surfaces web,api,cli] [--mode gate|autonomous]` — validates a ticket's **acceptance
+  criteria against the RUNNING product** by exercising each criterion live, then emits a **binary
+  verdict** (`accepted` | `rejected`). Pipeline: resolve target (a TICKET-ID; no arg → the ticket
+  of the current branch/PR; a PR/MR number → the linked ticket) → digest the **acceptance
+  criteria** → map the run command + surfaces (`snap-explorer`) → plan the exercise (**boot gate**)
+  → bring the env up (reuse `--base-url` or boot — **test/staging only, never prod**) → fan out
+  one validator per surface → tear down what it booted → synthesize the verdict → deliver (report
+  + ticket transition). Last gate of `/fulldev` (`develop → tests → review → qa`).
+- One model-typed subagent (`agents/snap-qa-validator.md`, Sonnet): exercises the acceptance
+  criteria of **one** surface (`web` via `agent-browser`, `api` via `curl`, `cli` via the
+  product's own command) **sequentially** against the live instance, judges each `met`/`partial`/
+  `unmet` with cited evidence, and captures evidence under `.snap/tmp/qa-evidence/`. **Never
+  touches the source; never boots/tears down the app** (the skill owns the lifecycle). No triage
+  agent — the verdict is binary. Reuses `snap-digest` (acceptance criteria), `snap-explorer`
+  (run/surfaces), `snap-loader` (remote ticket), and `persist-<provider>` (ticket transition). Run
+  logs, snapshots, and HTTP/CLI dumps stay in the agents' context; only small JSON contracts cross
+  (`.snap/tmp/{qa-target,qa-<surface>,qa-report}.json`).
+- Two progressive-disclosure references (`reference/`): `qa-runtime.md` (the app lifecycle —
+  `url-or-boot`, readiness poll, always-teardown, the hard **never-production** invariant — plus
+  the per-provider ticket-transition recipe: comment always, state transition only when mapped)
+  and `qa-pipeline.md` (the scratch contracts, the live CA-matrix verdict model, the env lifecycle,
+  the `/fulldev` loop-back contract).
+- **Output templates** (`skills/qa/templates/`): three frozen templates — `qa-plan.md` (the
+  exercise plan presented at the boot gate: CA × surface × how-exercised), `qa-report.md` (the
+  local report + conversation-summary base: CA matrix, verdict, env, rejected criteria), and
+  `qa-comment.md` (the structured QA comment posted to the ticket). One file per output, filled
+  from the JSON contracts.
+- **App lifecycle + verdict**: the skill owns boot/readiness/teardown deterministically (Bash
+  background) — reusing a provided `--base-url` (no teardown) or booting one and tearing it down
+  afterward (always, even on error), on a **test/staging** profile only. The report verdict is
+  `rejected` when any in-scope criterion is `partial`/`unmet` (including a required criterion no
+  surface could exercise — surfaced, not silently dropped), which drives the `/fulldev` loop back
+  to `/develop`; else `accepted`. **One pass — no internal loop** (the retry loop belongs to
+  `/fulldev`, so no `qa.maxIterations`). **Coverage = acceptance criteria observed live**, not line
+  coverage.
+- Config: new top-level **`qa`** block (`surfaces` array default all three, optional `mode`
+  inheriting `develop.mode`, optional `run` `{cmd,url,readyWhen,teardown}`) in the JSON Schema +
+  both config scripts; `init-config.mjs` gains `--qaSurfaces web,api,cli` / `--qaMode
+  gate|autonomous`; `/snap:init` interviews them.
+- Security: **never edits the source** (a failing criterion is a verdict, not a patch — the
+  `/develop` frontier); runs the app on a **test/staging profile only**, refusing a production base
+  URL; the only tracker writes are a QA comment and an optional **mapped** state transition (never a
+  new PR/merge/approval/`--force`). Tokens never enter `snap.config.json` or `.mcp.json` (D-033);
+  scratch + evidence live under `.snap/tmp/` (gitignored). Headless-tested (config scripts +
+  schema); live `/qa` runs pending.
+
+### Added (P10 — `/fulldev`, the palette orchestrator, D-041)
+- `skills/fulldev/SKILL.md`: user-only `/snap:fulldev [<TICKET-ID> | <PR#/MR!>] [--mode
+  gate|autonomous] [--max-cycles N] [--max-per-gate K] [--base-url <url>]` — orchestrates the whole
+  delivery chain `develop → tests → review → qa` in a **bounded loop** until every gate is green or
+  the budget is spent. The **last** skill of the palette and its **only looper**: the four
+  sub-skills are single-pass verdict emitters; `/fulldev` **invokes** them (Skill tool), **reads
+  their verdicts**, and routes any red back to `/develop`. Pipeline: resolve target (ticket-first,
+  like `/qa`) → digest the **acceptance criteria** → **auto-detect the entry** (an existing PR →
+  start at the gates; otherwise → `/develop` first) → plan (**gate**) → drive the loop → synthesize
+  → deliver (report + ticket comment, **PR left in draft**). Never edits the source or the gates,
+  never merges.
+- `scripts/fulldev-state.mjs` (Node, no deps): the **deterministic loop brain** — a pure state
+  machine (`init` / `step`) that applies each round's verdicts, counts per-gate reds, **blocks** a
+  gate at `maxPerGate`, picks the next action (`develop` | `gates` | `qa` | `stop`), and computes
+  the terminal verdict (`done-green` | `stopped-budget` | `stopped-blocked`). Each round runs
+  **tests ∥ review** on the diff and, only when both are green, **qa** live (qa boots the app — never
+  on already-rejected code). A `/develop` pass invalidates previously-green gates; blocked gates stay
+  skipped. Ships with a `--selftest` (15 checks across greenfield / fix-then-pass / blocked /
+  budget-spent / existing-PR scenarios).
+- **0 new agent** — pure orchestration: `/fulldev` invokes the sub-skills, which spawn their own
+  agents. Reuses `snap-digest`/`snap-loader` (acceptance criteria) and `persist-<provider>` (the
+  chain-level synthesis comment on the ticket).
+- Two progressive-disclosure references (`reference/`): `fulldev-pipeline.md` (the embedded
+  contract — pipeline + state machine + scratch contracts `.snap/tmp/{fulldev-state,fulldev-report}.json`
+  + verdict/stop model + sub-skill invocation table) and `fulldev-orchestration.md` (the runtime
+  recipe — Skill-tool invocation, per-host entry detection via `gh`/`glab`, `fulldev.mode`
+  propagation, draft-only delivery).
+- **Output templates** (`skills/fulldev/templates/`): three frozen templates — `fulldev-plan.md`
+  (the plan presented at the gate: ticket, detected entry, gates, budget, mode), `fulldev-report.md`
+  (the local report + conversation-summary base: gate status, cycle history, verdict), and
+  `fulldev-comment.md` (the orchestration-summary comment posted to the ticket). One file per output.
+- Config: new top-level **`fulldev`** block (`mode` default `gate` — **overrides** each sub-skill's
+  mode; `maxCycles` default `5` — global `/develop` budget; `maxPerGate` default `3` — reds before a
+  gate blocks) in the JSON Schema + both config scripts; `init-config.mjs` gains `--fulldevMode
+  gate|autonomous` / `--fulldevMaxCycles <n>` / `--fulldevMaxPerGate <n>`; `/snap:init` interviews
+  them.
+- Security: **never edits the source or the gates** (a red gate is routed back to `/develop`, which
+  owns every fix); **never merges / approves / `--force` / opens a new PR** — the chain ends with a
+  **draft** PR for a human. Tokens never enter `snap.config.json` or `.mcp.json` (D-033); scratch
+  lives under `.snap/tmp/` (gitignored); only small verdict contracts cross between stages.
+  Headless-tested (`fulldev-state.mjs --selftest` 15/15 + config scripts + schema); live `/fulldev`
+  runs pending.
+
 ### Changed
 - **AFFiNE connector is live.** The `affine` MCP server (`affine-mcp` stdio binary)
   is registered at user scope; `reference/persist-affine.md` moves from a

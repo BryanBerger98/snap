@@ -44,6 +44,21 @@ Ask, defaulting to the current values:
 - **review dimensions** (`review.dimensions`) — which axes `/review` runs in parallel
   (default all four: `correctness`, `security`, `conventions`, `quality`). A team can
   narrow the set; `/review` is read-only unless run with `--fix` (D-038).
+- **test levels** (`tests.levels`) — which levels `/tests` writes in parallel (default all
+  three: `unit`, `integration`, `e2e`). Also `tests.mode` (`gate`/`autonomous`; absent →
+  inherits `develop.mode`) and `tests.maxIterations` (green-loop cap, default `3`). `/tests`
+  writes test files and loops to green, never touching the source (D-039).
+- **qa surfaces** (`qa.surfaces`) — which surfaces `/qa` exercises in parallel (default all
+  three: `web`, `api`, `cli`). Also `qa.mode` (`gate`/`autonomous`; absent → inherits
+  `develop.mode`). `/qa` runs the real app on a **test/staging** profile and validates each
+  acceptance criterion live, never touching the source (D-040). The run command / base URL
+  (`qa.run`) is detected by `snap-explorer` or passed at run time via `--base-url` — never point
+  it at production.
+- **fulldev orchestration** (`fulldev`) — `fulldev.mode` (`gate`/`autonomous`, default `gate`),
+  which **overrides** each sub-skill's mode when `/fulldev` chains them; `fulldev.maxCycles`
+  (global budget of `/develop` passes, default `5`) and `fulldev.maxPerGate` (reds before a gate
+  blocks, default `3`). `/fulldev` loops `develop → tests → review → qa` to green, never editing the
+  source or merging (the draft PR is left for a human, D-041).
 
 Keep `repository` (no secret, git history, offline) unless the user wants a remote tool.
 The wireframe/design providers are set by their own skills — leave them untouched here.
@@ -55,7 +70,11 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/init-config.mjs" "${CLAUDE_PROJECT_DIR}" \
   --language <fr|en> --docsPath <path> \
   --docProvider <repository|notion|affine> --ticketsProvider <repository|github-projects|jira> \
   --repoProvider <github|gitlab|auto> --developMode <gate|autonomous> \
-  --reviewDimensions <correctness,security,conventions,quality>
+  --reviewDimensions <correctness,security,conventions,quality> \
+  --testLevels <unit,integration,e2e> --testMode <gate|autonomous> \
+  --testMaxIterations <n> \
+  --qaSurfaces <web,api,cli> --qaMode <gate|autonomous> \
+  --fulldevMode <gate|autonomous> --fulldevMaxCycles <n> --fulldevMaxPerGate <n>
 ```
 The script merges the values (preserving other keys) and validates the enums.
 

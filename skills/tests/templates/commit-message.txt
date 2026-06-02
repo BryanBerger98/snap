@@ -1,0 +1,8 @@
+# Frozen template (D-039). Conventional commit for test files pushed on the pr path (stage 7).
+# Fill {{scope}} from the touched area, {{ticket}} from tests-target, {{summary}} short.
+# Drop the " ({{ticket}})" suffix when no ticket. The body line is optional.
+# Strip these # lines.
+
+test({{scope}}): add tests for {{summary}} ({{ticket}})
+
+Covers {{ca_list}} across {{levels}}.
