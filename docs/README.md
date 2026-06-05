@@ -25,8 +25,10 @@ Cette doc décrit **comment utiliser chaque skill** et **le rôle de chaque agen
                                                               └──────────── /fulldev ────────
 ```
 
-- **Produit** — [`/define`](skills/define.md) cadre le produit (PR-FAQ, personas,
-  features, ADR) ; [`/ticket`](skills/ticket.md) le découpe en backlog livrable.
+- **Produit** — [`/define`](skills/define.md) cadre le produit en phases verrouillées
+  (Brief PR-FAQ → Vision → Spec + ADR) ; [`/brainstorm`](skills/brainstorm.md) génère le
+  catalogue de features ; [`/roadmap`](skills/roadmap.md) priorise Maintenant/Ensuite/Plus
+  tard ; [`/ticket`](skills/ticket.md) découpe en backlog livrable.
 - **Conception** — [`/wireframe`](skills/wireframe.md) (Lo-Fi), [`/ds`](skills/ds.md)
   (design system), [`/design`](skills/design.md) (Hi-Fi) — **dans Penpot ou Figma via
   MCP**, l'outil design est la source de vérité (rien dans le repo).

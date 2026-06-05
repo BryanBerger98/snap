@@ -28,8 +28,8 @@
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { toArr } from "../../../scripts/lib/frontmatter.mjs";
-import { loadFromFs, loadFromJson } from "../../../scripts/lib/entities.mjs";
+import { toArr } from "./lib/frontmatter.mjs";
+import { loadFromFs, loadFromJson } from "./lib/entities.mjs";
 
 // --- args ------------------------------------------------------------------
 const rawArgs = process.argv.slice(2);

@@ -5,16 +5,18 @@ livrée comme un plugin Claude Code. Snap expose une palette de skills invocable
 qui transforment une intention produit en artefacts versionnés, puis en code livré.
 
 ```
-/define → /ticket → /wireframe → /ds → /design → /develop → /tests · /review · /qa
-└─ produit ─┘   └──── conception (Penpot/Figma via MCP) ────┘  └ dév ┘  └── qualité ──┘
+/define → /brainstorm → /roadmap → /ticket → /wireframe → /ds → /design → /develop → /tests · /review · /qa
+└──────────── produit ────────────┘   └──── conception (Penpot/Figma via MCP) ────┘  └ dév ┘  └── qualité ──┘
 
         /fulldev orchestre develop → (tests ∥ review) → qa en boucle jusqu'au vert
 ```
 
-> **v2.1.0 — `/define` en mode discovery.** Les 11 skills sont livrées : `/snap:init`,
-> `/define`, `/ticket`, `/wireframe`, `/ds`, `/design`, `/develop`, `/review`, `/tests`,
-> `/qa`, `/fulldev`. `/define` mène désormais une vraie session de cadrage produit
-> (Working Backwards, itératif) en greenfield comme en brownfield.
+> **v2.2.0 — définition produit en phases verrouillées.** Les 13 skills sont livrées :
+> `/snap:init`, `/define`, `/brainstorm`, `/roadmap`, `/ticket`, `/wireframe`, `/ds`,
+> `/design`, `/develop`, `/review`, `/tests`, `/qa`, `/fulldev`. La définition produit est
+> découpée en phases verrouillées : `/define` cadre (Brief → Vision → Spec), `/brainstorm`
+> génère le catalogue de features, `/roadmap` priorise. La config est posée **manuellement**
+> via `/snap:init` (plus aucun hook au démarrage).
 
 ## Installation
 
@@ -35,20 +37,24 @@ claude plugin validate ./snap --strict     # valide le manifeste
 
 ## Premier setup
 
-Au premier démarrage, le hook `SessionStart` crée en silence à la racine du projet :
+La mise en place est **manuelle et explicite** — rien ne s'exécute au démarrage, donc
+Snap n'écrit jamais de config dans un projet qui ne l'utilise pas. Pour adopter Snap dans
+un repo, lance :
+
+```text
+/snap:init
+```
+
+L'assistant interactif crée à la racine du projet :
 
 - `snap.config.json` — config versionnée, partagée par l'équipe (langue, chemins,
   providers, modes). Schéma : [`snap.config.schema.json`](snap.config.schema.json).
 - `.env.example` — gabarit de secrets.
 - garde-fou : `.env` ajouté au `.gitignore` (anti-fuite — aucun token ne va dans la config).
 
-Pour choisir la langue, les chemins, les providers et provisionner les backends distants :
-
-```text
-/snap:init
-```
-
 Idempotent — relancer est sûr. Détails : [`docs/skills/init.md`](docs/skills/init.md).
+(Chaque skill répare aussi une config manquante en silence, mais les valeurs choisies
+viennent de `/snap:init`.)
 
 ## Utilisation
 
@@ -57,7 +63,9 @@ Chaque skill est une commande `/` autonome, mais elles s'enchaînent. Tape la fo
 
 | Skill | Rôle |
 | --- | --- |
-| [`/define`](docs/skills/define.md) | Base de connaissances produit (PR-FAQ, personas, features, ADR) |
+| [`/define`](docs/skills/define.md) | Base produit en phases verrouillées (Brief PR-FAQ → Vision → Spec + ADR) |
+| [`/brainstorm`](docs/skills/brainstorm.md) | Génère le catalogue de features (diverger puis converger) |
+| [`/roadmap`](docs/skills/roadmap.md) | Priorise Maintenant / Ensuite / Plus tard (biais *Plus tard*) |
 | [`/ticket`](docs/skills/ticket.md) | Backlog livrable (Epics → Stories → Tasks/Bugs) |
 | [`/wireframe`](docs/skills/wireframe.md) | Wireframes Lo-Fi dans l'outil design (MCP) |
 | [`/ds`](docs/skills/ds.md) | Design system dans l'outil design (MCP) + codec de tokens |
@@ -97,9 +105,9 @@ Modes des skills dév/qualité (`develop`, `tests`, `qa`, `review`, `fulldev`) :
   [`docs/agents.md`](docs/agents.md).
 - `reference/` — guides chargés à la demande par les skills (pipelines, conventions,
   persistance par provider).
-- `hooks/` — `SessionStart` → bootstrap de la config.
 - `scripts/` — cœur déterministe Node (`.mjs`, cross-platform, sans dépendances) :
-  `bootstrap-config`, `init-config`, `fulldev-state` (machine à états de la boucle), et
+  `bootstrap-config` (défauts minimaux, appelé par `/snap:init` et en auto-réparation),
+  `init-config` (setup interactif), `fulldev-state` (machine à états de la boucle), et
   `lib/` (frontmatter, entités).
 - `plan/` — décisions (ADR léger), specs techniques.
 

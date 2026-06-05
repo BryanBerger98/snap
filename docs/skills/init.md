@@ -9,9 +9,11 @@ Assistant interactif qui crée `snap.config.json` à la racine du projet et inst
 les garde-fous secrets (`.env.example` + `.env` ajouté au `.gitignore`). À lancer
 une fois quand on adopte Snap dans un repo, ou plus tard pour changer la config.
 
-Le hook `SessionStart` pose déjà des défauts en silence au premier démarrage ;
-`/snap:init` te laisse **choisir** (langue, `docsPath`, providers, modes…) et provisionne
-les backends distants si besoin.
+C'est la **seule** façon de mettre en place Snap dans un repo : rien ne s'exécute au
+démarrage de la session, donc Snap n'écrit jamais de config dans un projet qui ne
+l'utilise pas. `/snap:init` te laisse **choisir** (langue, `docsPath`, providers,
+modes…) et provisionne les backends distants si besoin. (Chaque skill Snap répare
+aussi une config manquante en silence, mais les valeurs choisies viennent d'ici.)
 
 ## Invocation
 

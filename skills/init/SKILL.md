@@ -12,9 +12,11 @@ allowed-tools: Read, Write, AskUserQuestion, Task, Bash(node *)
 
 # /snap:init — Initialize the project config
 
-Explicit, interactive setup of `snap.config.json` at the project root. The
-`SessionStart` hook already creates the file with defaults on its own; this command
-is the **user-driven** entry point to pick the values and (re)configure later.
+Explicit, interactive setup of `snap.config.json` at the project root. This is the
+**only** thing that sets up Snap in a repo — nothing runs on session start, so Snap
+never writes config into a project that doesn't use it. Run this once when adopting
+Snap, or again to reconfigure later. (Each Snap skill also self-heals a missing
+config silently, but the user-chosen values come from here.)
 
 ## Algorithm
 

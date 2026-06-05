@@ -3,6 +3,45 @@
 All notable changes to the Snap plugin are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/), semver versioning.
 
+## [2.2.0] — 2026-06-05
+
+### Removed — `SessionStart` hook no longer bootstraps config (bugfix)
+- **`hooks/hooks.json` is now empty (`{ "hooks": {} }`).** The `SessionStart` hook ran
+  `bootstrap-config.mjs` on every session, writing `snap.config.json`, `.env.example` and
+  a `.gitignore` guard into **every** project opened with Claude — including projects that
+  don't use Snap. Config setup is now **exclusively manual** via `/snap:init`; nothing runs
+  at session start, so Snap never pollutes a project that didn't opt in (D-047, amends
+  D-002/D-020).
+- **Self-heal preserved.** Every skill still calls `bootstrap-config.mjs` (minimal
+  defaults) when it finds `snap.config.json` missing, so removing the hook breaks no real
+  Snap usage — the config is created on demand, never ahead of time. `bootstrap-config.mjs`
+  is kept (called by `/snap:init` + self-heal); only its header comment changed.
+
+### Changed — product definition split into gated phases
+- **`/define` is now a gated router.** It owns the Brief (`-n`/`--new`, PR-FAQ), the Vision
+  + Personas (`-v`/`--vision`) and a single Now feature's Spec + technical review
+  (`-s`/`--spec`). A phase refuses to run until the previous one is complete and confirmed
+  (hybrid gate: entity digest + `.snap/define-progress.json` holding `briefConfirmedAt` /
+  `roadmapReviewedAt`). No-arg advances to the next unmet phase and **redirects by message**
+  to the sibling skills when they are due (D-042/D-044/D-045).
+- **`/brainstorm` (new).** Proactively generates the feature catalogue — diverge (persona ×
+  pain matrix, adjacent jobs, competitor patterns) then converge (every survivor serves a
+  real persona pain). Writes one-line stubs (`depth: stub`); the deep PRD stays in
+  `/define --spec`.
+- **`/roadmap` (new).** Prioritizes the catalogue into Now / Next / Later with a deliberate
+  Later-heavy bias (the smallest set that ships); writes each feature's `horizon` and
+  regenerates the roadmap view.
+
+### Changed — shared product-model core at plugin root (no duplication)
+- The entity model moved from `skills/define/` up to the plugin root and is now shared by
+  the three definition skills via `${CLAUDE_PLUGIN_ROOT}/…` (R7, zero copy):
+  `reference/product-model/` (`core-io.md`, `discovery.md`, `id-scheme.md`,
+  `frontmatter-schema.md`, `checklists.md`, `schema.md`), `templates/product-model/`
+  (`brief`, `persona`, `feature`, `adr`), and `scripts/` (`build-index.mjs`,
+  `lint-docs.mjs`). `skills/ticket/SKILL.md` rewired to the new path (D-043).
+- Each skill follows the `generate-skill` router architecture: a pure-router `SKILL.md`,
+  atomic `actions/`, and TDD-first `evals/scenarios.json` (D-046).
+
 ## [2.1.0] — 2026-06-02
 
 ### Changed — `/define` now runs a real discovery session

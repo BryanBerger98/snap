@@ -1,0 +1,74 @@
+[
+  {
+    "type": "should",
+    "prompt": "J'ai une idée d'app de covoiturage entre voisins, aide-moi à la cadrer",
+    "expect_action": "draft-brief",
+    "note": "Idée brute → phase Brief"
+  },
+  {
+    "type": "should",
+    "prompt": "/define --new",
+    "expect_action": "draft-brief"
+  },
+  {
+    "type": "should",
+    "prompt": "/define -v",
+    "expect_action": "define-vision"
+  },
+  {
+    "type": "should",
+    "prompt": "Définis les personas cibles et la vision du produit",
+    "expect_action": "define-vision"
+  },
+  {
+    "type": "should",
+    "prompt": "Spécifie en détail la feature de connexion par e-mail",
+    "expect_action": "spec-feature"
+  },
+  {
+    "type": "should",
+    "prompt": "/define --spec authentification",
+    "expect_action": "spec-feature"
+  },
+  {
+    "type": "should",
+    "prompt": "Quels sont les enjeux de sécurité, de performance et de dépendances de la feature de paiement ?",
+    "expect_action": "tech-review"
+  },
+  {
+    "type": "should_not",
+    "prompt": "Liste-moi toutes les features possibles pour ce produit",
+    "expect_action": null,
+    "competing_skill": "brainstorm"
+  },
+  {
+    "type": "should_not",
+    "prompt": "Priorise : qu'est-ce qu'on construit en premier, ensuite, plus tard ?",
+    "expect_action": null,
+    "competing_skill": "roadmap"
+  },
+  {
+    "type": "should_not",
+    "prompt": "Crée un ticket Epic et ses stories pour cette feature",
+    "expect_action": null,
+    "competing_skill": "ticket"
+  },
+  {
+    "type": "should_not",
+    "prompt": "Génère les wireframes de l'écran d'accueil",
+    "expect_action": null,
+    "competing_skill": "wireframe"
+  },
+  {
+    "type": "ambiguous",
+    "prompt": "/define",
+    "expect_action": "ask_clarification",
+    "note": "load-state lit l'état et annonce la phase à laquelle on entre, ou la redirection (/brainstorm, /roadmap)"
+  },
+  {
+    "type": "ambiguous",
+    "prompt": "Aide-moi avec mon produit",
+    "expect_action": "ask_clarification",
+    "note": "Demander à quelle étape on en est (idée brute, vision, spec d'une feature)"
+  }
+]
