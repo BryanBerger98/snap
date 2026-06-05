@@ -20,7 +20,9 @@ défaut raisonnable (souvent : tout ce qui est en attente).
 | Skill | Phase | Rôle | Boucle ? |
 | --- | --- | --- | --- |
 | [`/snap:init`](init.md) | Setup | Crée / reconfigure `snap.config.json` | — |
-| [`/define`](define.md) | Produit | Base de connaissances produit (PR-FAQ, personas, features, ADR) | — |
+| [`/define`](define.md) | Produit | Base produit en phases verrouillées (Brief, Vision, Spec + Tech) | — |
+| [`/brainstorm`](brainstorm.md) | Produit | Génère le catalogue de features (divergence proactive → stubs) | — |
+| [`/roadmap`](roadmap.md) | Produit | Priorise le catalogue en Maintenant / Ensuite / Plus tard | — |
 | [`/ticket`](ticket.md) | Produit | Backlog livrable (Epics → Stories → Tasks/Bugs) | — |
 | [`/wireframe`](wireframe.md) | Conception | Wireframes Lo-Fi dans l'outil design (MCP) | — |
 | [`/ds`](ds.md) | Conception | Design system dans l'outil design (MCP) + codec code | — |

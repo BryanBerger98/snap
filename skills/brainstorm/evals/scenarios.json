@@ -1,0 +1,53 @@
+[
+  {
+    "type": "should",
+    "prompt": "Liste-moi toutes les features possibles pour ce produit",
+    "expect_action": "diverge-features"
+  },
+  {
+    "type": "should",
+    "prompt": "/brainstorm",
+    "expect_action": "diverge-features"
+  },
+  {
+    "type": "should",
+    "prompt": "Propose des idées de fonctionnalités à partir des douleurs des personas",
+    "expect_action": "diverge-features",
+    "note": "Le skill doit GÉNÉRER, pas seulement transcrire"
+  },
+  {
+    "type": "should",
+    "prompt": "On a fait le tour des idées ? coupe celles qui ne servent aucun persona",
+    "expect_action": "converge-features"
+  },
+  {
+    "type": "should_not",
+    "prompt": "Cadre mon idée de produit et écris le brief",
+    "expect_action": null,
+    "competing_skill": "define"
+  },
+  {
+    "type": "should_not",
+    "prompt": "Range ces features en Now / Next / Later",
+    "expect_action": null,
+    "competing_skill": "roadmap"
+  },
+  {
+    "type": "should_not",
+    "prompt": "Spécifie en détail la feature de paiement",
+    "expect_action": null,
+    "competing_skill": "define"
+  },
+  {
+    "type": "should_not",
+    "prompt": "Crée les personas cibles du produit",
+    "expect_action": null,
+    "competing_skill": "define"
+  },
+  {
+    "type": "ambiguous",
+    "prompt": "On manque d'idées",
+    "expect_action": "ask_clarification",
+    "note": "Vérifier que brief + personas existent (verrou), sinon rediriger vers /define ; sinon lancer la divergence"
+  }
+]

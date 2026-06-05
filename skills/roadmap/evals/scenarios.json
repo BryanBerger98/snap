@@ -1,0 +1,53 @@
+[
+  {
+    "type": "should",
+    "prompt": "Priorise les features : qu'est-ce qu'on fait maintenant, ensuite, plus tard ?",
+    "expect_action": "prioritize"
+  },
+  {
+    "type": "should",
+    "prompt": "/roadmap",
+    "expect_action": "prioritize"
+  },
+  {
+    "type": "should",
+    "prompt": "Range tout ça en Now / Next / Later",
+    "expect_action": "prioritize"
+  },
+  {
+    "type": "should",
+    "prompt": "Quelles features garde-t-on pour le premier lancement ?",
+    "expect_action": "prioritize",
+    "note": "Restreindre Now/Next ; Later le plus gros"
+  },
+  {
+    "type": "should_not",
+    "prompt": "Trouve-moi de nouvelles idées de features",
+    "expect_action": null,
+    "competing_skill": "brainstorm"
+  },
+  {
+    "type": "should_not",
+    "prompt": "Spécifie la feature retenue avec son parcours utilisateur",
+    "expect_action": null,
+    "competing_skill": "define"
+  },
+  {
+    "type": "should_not",
+    "prompt": "Cadre la vision et le brief du produit",
+    "expect_action": null,
+    "competing_skill": "define"
+  },
+  {
+    "type": "should_not",
+    "prompt": "Crée un ticket Epic pour la roadmap",
+    "expect_action": null,
+    "competing_skill": "ticket"
+  },
+  {
+    "type": "ambiguous",
+    "prompt": "Organise le projet",
+    "expect_action": "ask_clarification",
+    "note": "Clarifier : priorisation du catalogue de features existant (sinon rediriger vers /brainstorm si vide)"
+  }
+]

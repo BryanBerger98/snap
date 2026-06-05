@@ -7,3 +7,6 @@ node_modules/
 # Plan and tests
 plan/
 eval/
+
+# Snap — local secrets + scratch
+.snap/

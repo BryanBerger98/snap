@@ -44,7 +44,7 @@ Two **frontmatter-only** digests are generated at skill load — no bodies. The
 with their links):
 
 ### Product base (source)
-!`node "${CLAUDE_PLUGIN_ROOT}/skills/define/scripts/build-index.mjs" "${CLAUDE_PROJECT_DIR}" --digest`
+!`node "${CLAUDE_PLUGIN_ROOT}/scripts/build-index.mjs" "${CLAUDE_PROJECT_DIR}" --digest`
 
 ### Delivery base (tickets)
 !`node "${CLAUDE_PLUGIN_ROOT}/skills/ticket/scripts/build-board.mjs" "${CLAUDE_PROJECT_DIR}" --digest`

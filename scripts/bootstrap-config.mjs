@@ -1,8 +1,10 @@
 /**
  * Snap — bootstrap-config.mjs
  *
- * Cross-platform config bootstrapper (Node ESM, no deps). Run on SessionStart
- * via the plugin hook, and re-runnable by the /define skill as a safety net.
+ * Cross-platform config bootstrapper (Node ESM, no deps). NOT run automatically:
+ * config setup is manual via /snap:init. The Snap skills also call this as a
+ * self-heal safety net when they find snap.config.json missing. It never runs on
+ * SessionStart — Snap must not write config into projects that don't use it.
  *
  * Responsibilities (idempotent):
  *   1. Create snap.config.json (default) if absent.
