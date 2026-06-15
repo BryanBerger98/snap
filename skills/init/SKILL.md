@@ -34,8 +34,8 @@ Ask, defaulting to the current values:
 - **language** — `fr` or `en` (artifact language, D-007).
 - **docsPath** — where the product docs live (default `docs/product/`). Offer the
   default + a couple of common alternatives (`docs/`, `product/`); free text via "Other".
-- **doc backend** (`providers.doc`) — `repository` (default, Markdown in the repo),
-  `notion`, or `affine`. Exclusive: one home per project, no mirror/sync (D-027).
+- **doc backend** (`providers.doc`) — `repository` (default, Markdown in the repo) or
+  `notion`. Exclusive: one home per project, no mirror/sync (D-027).
 - **tickets backend** (`providers.tickets`) — `repository` (default), `github-projects`,
   or `jira` (D-033).
 - **code host** (`providers.repository`) — `github`, `gitlab`, or **auto** (leave `null`,
@@ -70,7 +70,7 @@ Run, with the chosen values:
 ```
 node "${CLAUDE_PLUGIN_ROOT}/scripts/init-config.mjs" "${CLAUDE_PROJECT_DIR}" \
   --language <fr|en> --docsPath <path> \
-  --docProvider <repository|notion|affine> --ticketsProvider <repository|github-projects|jira> \
+  --docProvider <repository|notion> --ticketsProvider <repository|github-projects|jira> \
   --repoProvider <github|gitlab|auto> --developMode <gate|autonomous> \
   --reviewDimensions <correctness,security,conventions,quality> \
   --testLevels <unit,integration,e2e> --testMode <gate|autonomous> \
@@ -87,10 +87,6 @@ then persist its locators — never hand-edit `snap.config.json`:
   the bases. The provisioner creates (idempotently) the Personas/Features/Decisions
   databases + Brief page + Roadmap view + columns incl. `snap_id` (D-032), and writes
   `.snap/tmp/remote.json`.
-- **`providers.doc` = affine** — same shape, via the live `affine` MCP server: the
-  provisioner creates (idempotently) the Personas/Features/Decisions collections +
-  Brief doc + Roadmap index, tagging each doc `snap:<type>` / `snap:<id>` for lookup
-  (see `reference/persist-affine.md`).
 - **`providers.tickets` = jira / github-projects** — ask for the **existing project**
   (Jira project key / GitHub owner + project number). The provisioner **connects** to
   it (it does not create a project — D-033) and writes `.snap/tmp/remote.json`.

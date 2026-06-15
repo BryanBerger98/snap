@@ -50,7 +50,7 @@ the skill's context.
 All scratch lives under `.snap/tmp/`.
 
 > **`snap-loader` is REMOTE-ONLY** (D-029): it runs only when the provider is
-> remote (Notion / AFFiNE / Jira / GitHub-Projects), single provider+domain per
+> remote (Notion / Jira / GitHub-Projects), single provider+domain per
 > call. For `providers.* = repository` (default), the skill resolves **local file
 > paths** and `snap-digest` reads the files directly (bodies stay out of the skill
 > context). **Never load a local file through the loader.**

@@ -21,7 +21,7 @@ design est la source de vérité.
 ## Entrées / Sorties
 
 - **Lit** : `snap.config.json` (`providers.wireframe`, `wireframe.*`), les Features
-  `specified` (user flow / Mermaid du PRD), les Stories (critères → états d'écran).
+  `specified` (user flow numéroté du PRD), les Stories (critères → états d'écran).
 - **Écrit** : des boards Lo-Fi dans l'outil design via MCP. Nommés `WF · <écran> · <état>`,
   avec traçabilité `FEAT-*` / `STORY-*` dans la description. **Rien dans le repo.**
 

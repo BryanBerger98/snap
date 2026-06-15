@@ -18,7 +18,8 @@ to a human.
 - The entity `type` and its frozen template (the section structure).
 - A structured brief: title, target `language`, the ID to use, today's date, the
   initial `status` + `stability`, any entity-specific fields (e.g. a Feature's
-  `depth`/`horizon`/`value_hypothesis`), known facts, and links (`parents`/`related`).
+  `domain`/`depth`/`horizon`/`shipped_at`/`value_hypothesis`, a Decision's
+  `risk_type`), known facts, and links (`parents`/`related`).
 
 ## Output
 Return the complete entity as Markdown, ready to write to disk:

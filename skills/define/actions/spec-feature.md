@@ -9,9 +9,9 @@ batch-specify the catalogue.
 ## Outputs
 
 The target `FEAT-*` promoted to `depth: specified`, its PRD body filled from
-`templates/product-model/feature.md` (TL;DR · Problème & contexte · Objectif & métrique ·
-Périmètre In/Out · User flow Mermaid · User stories · Critères d'acceptation · Risques ·
-Hors-périmètre).
+`templates/product-model/feature.md` (Hypothèse de valeur · Problème & contexte · Objectif
+& métrique · Périmètre In/Out · User flow (liste numérotée) · User stories · Critères
+d'acceptation · Exigences non-fonctionnelles · Risques).
 
 ## Depends on
 - `load-state` (gate: `roadmapReviewedAt` set **and** the feature is `horizon: Now`)
@@ -20,8 +20,8 @@ Hors-périmètre).
 1. **Gate.** No roadmap yet → stop, route to `/roadmap`. Feature not `Now` → refuse
    (JIT: `depth: specified` is reserved for `Now`).
 2. Read `reference/spec-playbook.md`.
-3. Dig the PRD body: scope in/out, the **user flow** (valid `mermaid` block named
-   `flow-<feature-key>-<nom>`), **user stories** (`As a <persona>, I want…, so that…`),
+3. Dig the PRD body: scope in/out, the **user flow** (a numbered list — happy path
+   plus nested alt/error branches), **user stories** (`As a <persona>, I want…, so that…`),
    **acceptance criteria** (Given/When/Then, testable), risks, explicit out-of-scope.
 4. **Long body** → delegate drafting to the `snap-drafter` subagent with a structured
    brief + the template; keep the interview here.
@@ -31,4 +31,5 @@ Hors-périmètre).
 ## Test
 
 `lint-docs` exits 0 and the feature passes the `specified` checklist (all PRD sections
-present, valid mermaid block). A non-`Now` feature is rejected, not specified.
+present, user flow as a numbered list — no `mermaid` block). A non-`Now` feature is
+rejected, not specified.

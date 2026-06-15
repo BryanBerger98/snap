@@ -23,6 +23,11 @@ stable across all four agents.
 Outcomes / Opportunities / Releases / Glossary from the full schema stay **deferred**
 (JIT, exactly as in the repo provider).
 
+**The Brief page is the front door.** Provisioning creates the Brief **first**, then
+creates the three databases **parented to it** (`parentId == briefPageId`), so the whole
+backend hangs under one root (see `persist-notion.md §1`). `parentPageId` is only the
+workspace/page the user picked to host that Brief.
+
 ## Common columns (every DB row)
 
 | Column (Notion) | Notion type | Source (frontmatter) |
@@ -44,15 +49,15 @@ Outcomes / Opportunities / Releases / Glossary from the full schema stay **defer
 **Links are canonical as key-text** (`parents`/`children`/`related` rich_text). The
 loader reads links **from those**, never from the relations. `rel_*` relations are an
 optional display enrichment wired in pass 2 from the `key → page-id` map; they are
-**not** read back. AFFiNE stops at the key-text columns (no pass 2).
+**not** read back.
 
 ## Per-type extra columns
 
 | Entity | Extra columns (type) |
 | --- | --- |
 | persona | `persona_type` (select: proto, validé), `niveau_preuve` (select: hypothèse, entretiens, data) |
-| feature | `source` (select: discovered, inventoried), `depth` (select: stub, specified), `horizon` (select: Now, Next, Later, Done), `value_hypothesis` (rich_text) |
-| decision | `supersede` (rich_text, Snap ids) |
+| feature | `domain` (select: one option per distinct slug — auth, orgs, rgpd, …; **all known slugs declared at create**), `source` (select: discovered, inventoried), `depth` (select: stub, specified), `horizon` (select: Now, Next, Later, Done), `shipped_at` (date — optional, never required), `owner` (rich_text), `value_hypothesis` (rich_text) |
+| decision | `risk_type` (select: value, usability, feasibility, viability, ethical), `supersede` (rich_text, Snap ids) |
 
 ## Status enums (the `status` select options)
 
@@ -90,6 +95,15 @@ links: { parents: [], children: [], related: [] }
 The loader extracts that block with the standard frontmatter parser (treat the page
 markdown as a document: the YAML block = `fm`, the rest = `body`).
 
+## Body render-layer (markdown → native blocks)
+
+The columns above hold the **frontmatter**; the entity **body** (PR-FAQ, JTBD, PRD
+sections) renders to native Notion blocks — headings, callouts (**type = meaning**),
+numbered/nested lists, tables. Notion is loss-free on the full template grammar. The
+complete capability matrix and the `blockMap` section-anchor idempotency diff live in
+`persist-notion.md` (`§Render layer` / `§Idempotency`) — C2: only `snap-writer` reads
+those render rules; this schema file stays the *column* contract.
+
 ## Tickets (when `providers.tickets = …` also targets a DB-style platform)
 
 For completeness, the delivery entities map the same way with these extras — but the
@@ -108,8 +122,8 @@ columns:
 
 ```json
 { "notion": {
-    "parentPageId": "<the page/workspace that holds the bases>",
-    "briefPageId": "<the Brief page>",
+    "parentPageId": "<the workspace/page that holds the Brief>",
+    "briefPageId": "<the Brief page — parent of the 3 databases>",
     "roadmapViewId": "<the Features roadmap view>",
     "databases": { "personas": "<db-id>", "features": "<db-id>", "decisions": "<db-id>" } } }
 ```

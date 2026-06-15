@@ -10,3 +10,4 @@ eval/
 
 # Snap — local secrets + scratch
 .snap/
+snap.config.json

@@ -2,7 +2,7 @@
  * Snap — build-index.mjs
  *
  * Regenerates two views from the entity frontmatters (Node ESM, no deps):
- *   - <docsPath>/INDEX.md   — the entity map (Brief / Personas / Features / Decisions)
+ *   - <docsPath>/README.md  — the generated front-door / entity map (D-048)
  *   - <docsPath>/ROADMAP.md — Features grouped by horizon (Now/Next/Later/Done)
  *
  * The roadmap is a *view*, never authored by hand (D-019). Invoked by /define
@@ -17,7 +17,7 @@
  *     to stdout and exit WITHOUT writing the views. Lets /define detect existing
  *     state without globbing + reading every entity body (injected via the skill's
  *     `!`command`` directive). Emits an empty digest (never errors) on a fresh repo.
- *     When providers.doc is remote (notion/affine) it prints a marker instead — a
+ *     When providers.doc is remote (notion) it prints a marker instead — a
  *     script can't read a remote base; the skill loads it via the snap-loader agent
  *     (D-029 R1). --from-json overrides the marker.
  *   --from-json <path>: load the normalized state from a JSON file an agent wrote
@@ -71,7 +71,7 @@ if (DIGEST && REMOTE && !fromJson) {
 }
 
 // --- collect entities (loadFromFs | loadFromJson — D-028) -------------------
-const GENERATED = ["INDEX.md", "ROADMAP.md"];
+const GENERATED = ["README.md", "ROADMAP.md"];
 const docsDir = resolve(projectDir, docsPath);
 let entities = [];
 if (fromJson) {
@@ -133,8 +133,8 @@ if (DIGEST) {
     for (const e of ofType(t)) {
       const meta =
         t === "feature"
-          ? pad(get(e, "horizon", "-"), 6) + pad(get(e, "depth", "-"), 10)
-          : pad("", 16);
+          ? pad(get(e, "horizon", "-"), 6) + pad(get(e, "depth", "-"), 10) + pad(get(e, "domain", "-"), 12)
+          : pad("", 28);
       const links = linksCell(e.fm);
       lines.push(
         [pad(e.id, 9), pad(e.type, 9), pad(e.status || "-", 11), meta, links === "—" ? "" : links]
@@ -161,16 +161,16 @@ const L = EN
       brief: "Brief", personas: "Personas", features: "Features", decisions: "Decisions",
       id: "ID", title: "Title", status: "Status", stab: "Stability", type: "Type",
       proof: "Evidence", depth: "Depth", horizon: "Horizon", persona: "Persona", links: "Links",
-      decided: "About", empty: "_None yet._" }
+      dom: "Domain", decided: "About", empty: "_None yet._" }
   : { idx: "Index produit", rmap: "Roadmap", noEdit: "Généré automatiquement par Snap `/define`. Ne pas éditer à la main.",
       brief: "Brief", personas: "Personas", features: "Features", decisions: "Décisions",
       id: "ID", title: "Titre", status: "Statut", stab: "Stabilité", type: "Type",
       proof: "Preuve", depth: "Depth", horizon: "Horizon", persona: "Persona", links: "Liens",
-      decided: "Lié à", empty: "_Aucun pour l'instant._" };
+      dom: "Domaine", decided: "Lié à", empty: "_Aucun pour l'instant._" };
 
 const link = (e) => `[${e.title}](${e.path})`;
 
-// --- render INDEX.md -------------------------------------------------------
+// --- render README.md (front-door / entity map, D-048) ---------------------
 let idx = `<!-- ${L.noEdit} -->\n# ${L.idx}\n\n`;
 
 function section(label, rows, header, rowFn) {
@@ -195,27 +195,52 @@ idx += section(L.decisions, ofType("decision"), [L.id, L.title, L.status, L.deci
 );
 
 // --- render ROADMAP.md (Features by horizon) -------------------------------
+// Status shown with a glyph so the table scans at a glance; unknown → bullet.
+const STATUS_EMOJI = {
+  idea: "💭", discovery: "🔍", ready: "📋",
+  building: "🚧", shipped: "✅", deprecated: "⛔",
+};
+const statusCell = (s) => (s ? `${STATUS_EMOJI[s] || "•"} ${s}` : "—");
+// Collapse whitespace and cap the value hypothesis so a row stays one line.
+const truncate = (s, n = 60) => {
+  const t = String(s).replace(/\s+/g, " ").trim();
+  return t.length > n ? t.slice(0, n - 1).trimEnd() + "…" : t;
+};
+
 const HORIZONS = ["Now", "Next", "Later", "Done"];
 const features = ofType("feature");
 let rmap = `<!-- ${L.noEdit} -->\n# ${L.rmap}\n\n`;
 for (const h of HORIZONS) {
-  const rows = features.filter((e) => get(e, "horizon") === h);
+  let rows = features.filter((e) => get(e, "horizon") === h);
+  // Done is shipped history → newest first by shipped_at; undated last, then by id.
+  if (h === "Done") {
+    rows = [...rows].sort((a, b) => {
+      const sa = get(a, "shipped_at"), sb = get(b, "shipped_at");
+      if (sa && sb) return sb.localeCompare(sa);
+      if (sa) return -1;
+      if (sb) return 1;
+      return byId(a, b);
+    });
+  }
   rmap += `## ${h}\n\n`;
   if (!rows.length) { rmap += `${L.empty}\n\n`; continue; }
-  rmap += `| ${L.id} | ${L.features} | ${L.persona} | ${L.depth} | ${L.status} |\n| --- | --- | --- | --- | --- |\n`;
+  rmap += `| ${L.id} | ${L.features} | ${L.dom} | ${L.persona} | ${L.depth} | ${L.status} |\n`;
+  rmap += `| --- | --- | --- | --- | --- | --- |\n`;
   for (const e of rows) {
     const personas = relatedPersonas(e).join(", ") || "—";
-    rmap += `| \`${e.id}\` | ${link(e)} | ${personas} | ${get(e, "depth", "—")} | ${e.status || "—"} |\n`;
+    const vh = get(e, "value_hypothesis");
+    const feat = vh ? `${link(e)}<br>_${truncate(vh)}_` : link(e);
+    rmap += `| \`${e.id}\` | ${feat} | ${get(e, "domain", "—")} | ${personas} | ${get(e, "depth", "—")} | ${statusCell(e.status)} |\n`;
   }
   rmap += "\n";
 }
 
 // --- write -----------------------------------------------------------------
 try {
-  writeFileSync(join(docsDir, "INDEX.md"), idx);
+  writeFileSync(join(docsDir, "README.md"), idx);
   writeFileSync(join(docsDir, "ROADMAP.md"), rmap);
   const n = entries.length;
-  console.log(`[snap] build-index: wrote INDEX.md + ROADMAP.md (${n} entit${n === 1 ? "y" : "ies"}).`);
+  console.log(`[snap] build-index: wrote README.md + ROADMAP.md (${n} entit${n === 1 ? "y" : "ies"}).`);
 } catch (err) {
   console.warn(`[snap] build-index warning: could not write views: ${err.message}`);
 }

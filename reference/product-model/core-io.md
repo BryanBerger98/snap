@@ -7,6 +7,7 @@ this once per run; the skill-specific gate lives in the skill's own `load-state`
 ## Contents
 - Load config
 - Read state (repo digest / remote loader)
+- Write path (numbered tree + ensure-dir)
 - Progress marker (the hybrid gate signals)
 - Lint gate
 - Regenerate views
@@ -31,6 +32,18 @@ this once per run; the skill-specific gate lives in the skill's own `load-state`
   `snap-loader` agent (`domain: doc`, provider, `remote.*` locators, `withBody: true`
   when the run will write). It returns the map and writes `.snap/tmp/state.json`.
 
+## Write path (repo — numbered tree + ensure-dir)
+Entities live in a **numbered, reading-order tree** under `<docsPath>` (full table in
+`id-scheme.md`):
+- `01-brief/BRF-001-<slug>.md` · `02-personas/PER-*.md` ·
+  `03-features/<domain>/FEAT-*.md` (nested one level under the feature's `domain` slug) ·
+  `04-decisions/ADR-*.md`.
+Before writing, **ensure the target directory exists** (`mkdir -p` — OD2 double safety
+net): `/snap:init` pre-scaffolds the four top dirs, and each per-`domain` feature
+subfolder is created on demand by its first feature (the `Write` tool creates missing
+parents). A feature's `domain` frontmatter **must equal** its `03-features/<slug>/`
+subfolder — the linter errors on drift.
+
 ## Progress marker (hybrid gate — O2)
 Two facts are **not** derivable from entity frontmatter, so they live in
 `<docsPath>/../.snap/define-progress.json` (create on first write):
@@ -54,7 +67,7 @@ Warnings are advisory — surface them in the summary.
 
 ## Regenerate views
 - **Repo:** `node "${CLAUDE_PLUGIN_ROOT}/scripts/build-index.mjs" "${CLAUDE_PROJECT_DIR}"`
-  rewrites `<docsPath>/INDEX.md` (entity map) and `<docsPath>/ROADMAP.md` (features by
+  rewrites `<docsPath>/README.md` (front-door / entity map) and `<docsPath>/ROADMAP.md` (features by
   horizon). Never hand-edit these.
 - **Remote:** nothing to generate — the platform's native views (the Roadmap view
   provisioned at `/snap:init`, grouped by `horizon`) are the index/roadmap.

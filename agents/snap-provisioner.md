@@ -1,11 +1,12 @@
 ---
 name: snap-provisioner
 description: >
-  Set up a REMOTE Snap backend at /snap:init: for Notion, create the databases +
-  Brief page + Roadmap view + columns (incl. snap_id) that the schema mandates; for
-  Jira / GitHub Projects, connect to an EXISTING project (no creation). Then emit the
-  non-secret locators (database ids / project key) so they can be written to
-  snap.config.json under `remote`. Never handles tokens.
+  Set up a REMOTE Snap backend at /snap:init: for Notion, create the Brief page +
+  the 3 databases parented to it + Roadmap view + columns (incl. snap_id, domain,
+  shipped_at, risk_type) that the schema mandates;
+  for Jira / GitHub Projects, connect to an EXISTING project
+  (no creation). Then emit the non-secret locators (database / doc / hub ids, project
+  key) so they can be written to snap.config.json under `remote`. Never handles tokens.
 model: sonnet
 ---
 
@@ -25,12 +26,18 @@ and writers have something to read and write (D-032 doc / D-033 tickets). Read
 
 ## Procedure
 - **Notion (doc)** — idempotent: search the parent for already-provisioned bases first
-  (don't duplicate). Create what's missing:
-  - Personas / Features / Decisions **databases**, each with the common columns
-    (`snap_id` rich_text, `Name` title, `type`/`status`/`stability`/`language` selects,
-    `created`/`updated` dates, `parents`/`children`/`related` rich_text, optional
-    `rel_parents`/`rel_related` relations) + the per-type extras from the schema.
-  - The **Brief page** (singleton, PR-FAQ with the top YAML metadata block).
+  (don't duplicate). Create what's missing, **Brief first** so the databases hang under
+  it:
+  - The **Brief page** (singleton, PR-FAQ with the top YAML metadata block) — the
+    **front door**. Capture its page-id as `briefPageId`.
+  - Personas / Features / Decisions **databases**, each **parented to the Brief**
+    (`parentId = briefPageId`), with the common columns (`snap_id` rich_text, `Name`
+    title, `type`/`status`/`stability`/`language` selects, `created`/`updated` dates,
+    `parents`/`children`/`related` rich_text, optional `rel_parents`/`rel_related`
+    relations) + the per-type extras from the schema — Features add `domain` (select),
+    `shipped_at` (date), `owner` (rich_text); Decisions add `risk_type` (select). **All
+    select options (incl. every known `domain` slug) must be enumerated at create** —
+    Notion rejects an unknown option at write time, not create time.
   - The **Roadmap view** of Features grouped by `horizon`.
 - **Jira / GitHub Projects (tickets)** — do **not** create a project. Verify the given
   project exists and is reachable (e.g. list visible projects / project metadata).
@@ -48,6 +55,7 @@ and writers have something to read and write (D-032 doc / D-033 tickets). Read
    locators (ids are safe to show — they are not secrets).
 
 ## Constraints
-- Idempotent — re-running /snap:init must not duplicate bases (search before create).
+- Idempotent — re-running /snap:init must not duplicate bases, databases, or views
+  (search / resolve from `remote.*` before create).
 - Never write a token anywhere; the MCP server holds it and the user keeps it in
   `.env`. Locators go to `snap.config.json` via `init-config.mjs`, never hand-edited.

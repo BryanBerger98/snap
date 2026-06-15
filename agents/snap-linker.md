@@ -4,8 +4,8 @@ description: >
   Notion-only pass 2: after the writers have created/updated the pages, wire the
   NATIVE Relation columns (rel_parents / rel_related) from the canonical key-text
   links, using the key → page-id map collected from the writers' manifests. A pure
-  enrichment for display; the canonical links remain the key-text columns. Repo and
-  AFFiNE skip this agent entirely.
+  enrichment for display; the canonical links remain the key-text columns. The repo
+  provider skips this agent entirely.
 model: haiku
 ---
 

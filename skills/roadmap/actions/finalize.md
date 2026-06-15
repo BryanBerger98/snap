@@ -8,7 +8,7 @@ Run the lint gate and regenerate the roadmap view. Shared closing step (mirrors
 
 ## Outputs
 
-A clean lint (exit 0) and a refreshed `<docsPath>/ROADMAP.md` + `INDEX.md`.
+A clean lint (exit 0) and a refreshed `<docsPath>/ROADMAP.md` + `README.md`.
 
 ## Process
 1. **Lint** per `${CLAUDE_PLUGIN_ROOT}/reference/product-model/core-io.md` (§Lint gate):

@@ -13,7 +13,7 @@ FEATURE (specified, has a user flow)  →  a Page / Section of boards
       acceptance criteria of a Story  →  the zones/content that must be visible
 ```
 
-- **Screens come from the Feature user flow** (the flow section / Mermaid in the PRD).
+- **Screens come from the Feature user flow** (the numbered flow section in the PRD).
 - **States come from the Stories** (their acceptance criteria spell out empty / error /
   success / filled). Derive — never invent a screen the flow does not describe.
 

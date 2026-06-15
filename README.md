@@ -86,7 +86,7 @@ provider par domaine :
 
 | Domaine | Clé | Choix |
 | --- | --- | --- |
-| Docs produit | `providers.doc` | `repository` · `notion` · `affine` |
+| Docs produit | `providers.doc` | `repository` · `notion` |
 | Tickets | `providers.tickets` | `github-projects` · `gitlab` · `jira` · `repository` |
 | Design | `providers.design` / `providers.wireframe` | `penpot` · `figma` (via MCP) |
 | Code host | `providers.repository` | `github` · `gitlab` |

@@ -11,6 +11,10 @@
     "snap-context7": {
       "type": "http",
       "url": "${CONTEXT7_MCP_URL:-https://mcp.context7.com/mcp}"
+    },
+    "snap-notion": {
+      "type": "http",
+      "url": "${NOTION_MCP_URL:-https://mcp.notion.com/mcp}"
     }
   }
 }

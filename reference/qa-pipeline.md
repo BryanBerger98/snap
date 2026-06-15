@@ -180,4 +180,4 @@ Choice D-040: **auto — reuse URL if provided, else boot**.
 
 See `reference/qa-runtime.md` for the app boot/readiness/teardown recipe per stack (web dev server, `docker compose`, API binary) and the ticket-transition commands per provider (comment + state mapping for `repository`, `github-projects`, and `jira`).
 
-For the optional remote ticket load on the digest context path (stage 2), the loader follows `reference/remote-architecture.md` and the matching `reference/persist-<provider>.md` (e.g. `persist-notion.md`, `persist-jira.md`, `persist-affine.md`).
+For the optional remote ticket load on the digest context path (stage 2), the loader follows `reference/remote-architecture.md` and the matching `reference/persist-<provider>.md` (e.g. `persist-notion.md`, `persist-jira.md`).

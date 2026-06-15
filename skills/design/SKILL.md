@@ -75,7 +75,7 @@ design system (no hand-built widgets), **token-driven** color/typography/spacing
 
 ### 4. Load the source & resolve scope
 - Glob `<docsPath>/**/*.md`; read the **`specified` Features** — their **user flow**
-  (flow section / Mermaid in the PRD body) and the **real copy/content** the screens show.
+  (the numbered flow section in the PRD body) and the **real copy/content** the screens show.
   A `stub` Feature has no flow → tell the user to `/define features` first.
 - Glob `<ticketsPath>/**/*.md`; for each Feature's Epic, read its **Stories** — each Story
   is a screen **state/variant** (its acceptance criteria describe the states).

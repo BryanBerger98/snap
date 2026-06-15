@@ -46,7 +46,7 @@ Modèles : **haiku** (mécanique, sans jugement), **sonnet** (recherche/synthès
 ### snap-loader
 - **Modèle** : sonnet · **Skills** : `/define`, `/ticket` + lecture distante de `/develop`,
   `/tests`, `/qa`, `/fulldev`
-- **Rôle** : Lit **une fois** un backend distant (Notion / AFFiNE / Jira / GitHub Projects)
+- **Rôle** : Lit **une fois** un backend distant (Notion / Jira / GitHub Projects)
   via son MCP, normalise tous les items vers la forme canonique `{id, type, fm, body?,
   source}`, et écrit le JSON normalisé dans le scratch — isolant le payload MCP verbeux. Sert
   à la fois le raisonnement de la skill et le lint depuis un seul fetch.
@@ -76,7 +76,7 @@ Modèles : **haiku** (mécanique, sans jugement), **sonnet** (recherche/synthès
 - **Entrées** : map clé → page-id (depuis les manifestes des writers), `parents`/`related`
   par entité, locators Notion. **Sorties** : manifeste (`{ linked, pages, unresolved }`).
 - **Contraintes** : **idempotent** (re-run = no-op) ; ne touche jamais les colonnes key-texte
-  ni le corps. Repo et AFFiNE sautent cet agent.
+  ni le corps. Le provider repository saute cet agent.
 
 ### snap-provisioner
 - **Modèle** : sonnet · **Skill** : `/snap:init`

@@ -54,25 +54,35 @@ if (!fromJson && !existsSync(docsDir)) {
 }
 
 // --- contract --------------------------------------------------------------
-const PREFIX_BY_TYPE = { brief: "BRF", persona: "PER", feature: "FEAT", decision: "ADR" };
-const TYPE_BY_PREFIX = { BRF: "brief", PER: "persona", FEAT: "feature", ADR: "decision" };
+const PREFIX_BY_TYPE = { brief: "BRF", persona: "PER", feature: "FEAT", decision: "ADR",
+  outcome: "OUT", opportunity: "OPP", release: "REL", glossary: "GLO" };
+const TYPE_BY_PREFIX = { BRF: "brief", PER: "persona", FEAT: "feature", ADR: "decision",
+  OUT: "outcome", OPP: "opportunity", REL: "release", GLO: "glossary" };
 const STATUS_ENUM = {
   brief: ["draft", "review", "approved"],
   persona: ["actif", "archivé"],
   feature: ["idea", "discovery", "ready", "building", "shipped", "deprecated"],
   decision: ["proposée", "actée", "supersédée"],
+  outcome: ["proposé", "actif", "atteint", "abandonné"],
+  opportunity: ["à explorer", "en test", "retenue", "écartée"],
+  release: ["publiée"],
+  glossary: ["actif"],
 };
 const STABILITY_VALID = ["frozen", "living", "append-only"];
-const STABILITY_EXPECTED = { brief: "frozen", persona: "living", feature: "living", decision: "append-only" };
-const FEATURE_TYPE = ["epic", "feature", "enhancement"];
+const STABILITY_EXPECTED = { brief: "frozen", persona: "living", feature: "living", decision: "append-only",
+  outcome: "living", opportunity: "living", release: "append-only", glossary: "living" };
+// NO `epic`: epics are project-management (ticket board), not product doc. Functional
+// grouping is the feature `domain` field. See reference/product-model/id-scheme.md.
+const FEATURE_TYPE = ["feature", "enhancement"];
 const FEATURE_SOURCE = ["discovered", "inventoried"];
 const FEATURE_DEPTH = ["stub", "specified"];
 const FEATURE_HORIZON = ["Now", "Next", "Later", "Done"];
+const DECISION_RISK_TYPE = ["value", "usability", "feasibility", "viability", "ethical"];
 const COMMON_KEYS = ["id", "type", "title", "status", "stability", "language", "created", "updated", "links"];
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 // --- collect (loadFromFs | loadFromJson — D-028) ---------------------------
-const GENERATED = ["INDEX.md", "ROADMAP.md"];
+const GENERATED = ["README.md", "ROADMAP.md"];
 let entities = [];
 if (fromJson) {
   try {
@@ -168,6 +178,9 @@ for (const d of docs) {
   if (type === "decision") {
     const sup = data.supersede;
     if (sup) for (const s of toArr(sup)) if (!idSet.has(String(s))) err(path, `supersede → \`${s}\` (no such id)`);
+    // risk_type ∈ enum when present (optional; one ADR settles one Cagan risk).
+    if (data.risk_type != null && data.risk_type !== "" && !DECISION_RISK_TYPE.includes(String(data.risk_type)))
+      err(path, `risk_type \`${data.risk_type}\` not in [${DECISION_RISK_TYPE.join(", ")}]`);
   }
 
   if (type === "persona") {
@@ -182,13 +195,33 @@ for (const d of docs) {
       if (data[k] == null || data[k] === "") err(path, `feature missing \`${k}\``);
       else if (!enumv.includes(String(data[k]))) err(path, `feature ${k} \`${data[k]}\` not in [${enumv.join(", ")}]`);
     }
+    // shipped_at: optional, NEVER required — valid even when status:shipped, and an
+    // empty value is always fine (OD3). Only constraint: when present, it must be ISO.
+    if (data.shipped_at != null && data.shipped_at !== "" && !ISO_DATE.test(String(data.shipped_at)))
+      err(path, `shipped_at \`${data.shipped_at}\` is not ISO YYYY-MM-DD`);
+    if (data.domain == null || data.domain === "")
+      warn(path, "feature missing `domain` (functional grouping; sets the `03-features/<slug>/` subfolder)");
+    // domain ↔ subfolder agreement (repo-only — the path carries the folder).
+    // Layout: 03-features/<slug>/FEAT-xxx.md ⇒ the parent folder must equal fm.domain
+    // (two views of one fact; closes silent drift — id-scheme.md › nesting).
+    else if (base) {
+      const segs = String(path).split("/");
+      const fi = segs.indexOf("03-features");
+      if (fi !== -1 && fi + 2 < segs.length) {
+        const folder = segs[fi + 1];
+        if (folder !== String(data.domain))
+          err(path, `feature domain \`${data.domain}\` ≠ its 03-features/ subfolder \`${folder}\` (must match — id-scheme.md › nesting)`);
+      } else if (fi !== -1 && fi + 2 === segs.length) {
+        warn(path, `feature sits directly under 03-features/ — expected to nest in \`${data.domain}/\` (03-features/${data.domain}/)`);
+      }
+    }
     const h2 = (body.match(/^##\s+/gm) || []).length;
     const hasMermaid = /```mermaid/.test(body);
     const depth = String(data.depth || "");
     if (depth === "specified") {
-      if (body.trim() === "" || (h2 === 0 && !hasMermaid)) err(path, "depth: specified but the PRD body is empty");
+      if (body.trim() === "" || h2 === 0) err(path, "depth: specified but the PRD body is empty");
       else {
-        if (!hasMermaid) warn(path, "specified feature has no ```mermaid user-flow block");
+        if (hasMermaid) warn(path, "feature uses a ```mermaid block — replace it with a numbered user-flow list");
         if (h2 < 5) warn(path, `specified feature has only ${h2} H2 section(s) (expected the full PRD body)`);
       }
     } else if (depth === "stub") {

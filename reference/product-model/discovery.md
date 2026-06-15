@@ -19,17 +19,25 @@ first answer, never write a hollow entity, never stop after one round of questio
   understanding in your own words and get a yes/correction**. Write only once the
   user confirms. Expect 2–4 rounds per major entity (Brief especially), not one.
 
-## How to ask
+## How to ask — the PROPOSE → TRIAGE → DIG → GATE loop
 
-- **Default channel = open conversation.** Ask open questions in plain prose. This
-  is where the real discovery happens — vision, pains, value, risks don't fit in a
-  multiple-choice box.
-- **Reserve `AskUserQuestion` for discrete forks**: bucketing a feature into
-  Now/Next/Later, picking among named options you've already framed, yes/no gates.
-  Don't funnel open discovery through closed questions — it caps the depth and
-  makes the session feel finished after one screen.
-- **Batch by topic, one entity at a time.** Don't fire 20 questions at once; run a
-  focused round, synthesize, then go deeper or move on.
+The full mechanic lives in `${CLAUDE_PLUGIN_ROOT}/reference/interview-engine.md` (the
+shared elicitation engine). The short version:
+
+- **Default channel = `AskUserQuestion` triage.** Don't make the user produce
+  everything in prose. **You propose** 3–4 expert candidates for the current
+  micro-question (grounded in the brief / audit / prior answers, through a proven
+  lens), and the user **triages** — keeps, cuts, edits, adds — via a multi-select
+  `AskUserQuestion` (always with "Other"). The user reacts instead of composing.
+- **Reserve open prose for genuinely open input** — the vision narrative, a nuance
+  the options miss, a story you asked them to recount. Cold start (no context yet):
+  one open seed question, then every later step is propose-driven.
+- **Then DIG.** For each kept item, escalate to specificity (unpack the vague word,
+  anchor in the last real instance, "evidence or guess?"). This is what makes the
+  interview short yet deep instead of long and shallow.
+- **One entity at a time, gated.** Run a focused round, synthesize, then GATE the
+  domain (the coverage checklist) before opening the next — never fire 20 questions
+  at once, never close a domain silently.
 
 ## The greenfield loop (no existing product)
 
@@ -67,8 +75,8 @@ against a persona pain — a feature that serves nobody is cut or parked. Then b
 the **horizon** (Now / Next / Later) — this is a good moment for `AskUserQuestion`.
 
 ### 4. Specify the `Now` features (`depth: specified`, full PRD)
-Only for what's being built first. Dig the PRD body: TL;DR, problem & context,
-objective & metric, **scope in / out**, **user flow** (Mermaid), **user stories**,
+Only for what's being built first. Dig the PRD body: value hypothesis, problem & context,
+objective & metric, **scope in / out**, **user flow** (numbered list), **user stories**,
 **acceptance criteria** (Given/When/Then, testable), risks, explicit out-of-scope.
 Delegate the heavy drafting to `snap-drafter`, keep the interview here.
 
@@ -103,7 +111,10 @@ both visions in the Brief; **the delta between them is the real roadmap.**
 ### D. Inventory existing features (`source: inventoried`)
 Write the capabilities found in the audit as feature entities with
 `source: inventoried`. Already-shipped → `horizon: Done` / `status: shipped`.
-Keep them `stub` unless they're being reworked now.
+Keep them `stub` unless they're being reworked now. When you flip a feature to
+`status: shipped`, you **may** set `shipped_at` to the real ship date *if the audit
+surfaced one* — otherwise leave it blank. Never derive it from `updated`; `shipped_at`
+is optional and never required, even when shipped (OD3).
 
 ### E. Personas from evidence
 Derive personas from real usage / existing users where possible (lean toward
@@ -125,7 +136,11 @@ but hollow entity fails the point of this skill.
 ## Anti-patterns
 
 - ❌ Treating the template as a questionnaire read top-to-bottom.
-- ❌ One round of `AskUserQuestion`, then writing every file.
+- ❌ Triaging once (one `AskUserQuestion` round) and writing the file — skipping the
+  DIG and the GATE. Triage is the *start* of the loop, not the end.
+- ❌ Funnelling genuinely open input (the vision narrative) through a closed
+  multiple-choice box, **or** dumping an open prose question where 3–4 proposed
+  candidates would let the user just react.
 - ❌ Asking only "project name?" and "main features?" — that is the failure this
   method exists to prevent.
 - ❌ Writing the Brief before the user confirms problem + vision + North Star.

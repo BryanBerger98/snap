@@ -28,7 +28,7 @@ FEATURE (specified, has a user flow)  →  a Page / Section of boards
   the flow's edges (A → B on action)  →  prototype links   (when interactive: prototype)
 ```
 
-- **Screens come from the Feature user flow** (the flow section / Mermaid in the PRD).
+- **Screens come from the Feature user flow** (the numbered flow section in the PRD).
 - **States come from the Stories** (their acceptance criteria spell out empty / loading /
   error / success / filled). Derive — never invent a screen the flow does not describe.
 - **Content comes from the PRD** (real labels, copy, representative data).

@@ -29,11 +29,11 @@ l'utilisateur, alors tracé en décision).
   le Brief (métrique-étoile + personas *Now*).
 - **Écrit** : le champ `horizon` sur chaque `FEAT-*`, une fiche de décision (`ADR-*`) pour
   un choix de séquencement notable, le marqueur `roadmapReviewedAt`, puis régénère
-  `ROADMAP.md` / `INDEX.md`. La roadmap est une **vue générée**, jamais écrite à la main.
+  `ROADMAP.md` / `README.md`. La roadmap est une **vue générée**, jamais écrite à la main.
 
 ## Config
 
-`language`, `docsPath`, `providers.doc` (`repository` | `notion` | `affine`).
+`language`, `docsPath`, `providers.doc` (`repository` | `notion`).
 
 ## Comportement
 

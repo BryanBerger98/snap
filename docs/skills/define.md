@@ -40,12 +40,12 @@ feature → **stop, lance `/brainstorm`** ; features sans roadmap → **stop, la
   (frontmatter seul) injecté automatiquement, `.snap/define-progress.json` (signaux de
   verrou), les templates partagés `templates/product-model/<type>.md`.
 - **Écrit** : `BRF-001`, `PER-*`, `FEAT-*` (`specified`), `ADR-*` sous
-  `<docsPath>/<dir>/<ID>-<slug>.md`, puis régénère `INDEX.md` / `ROADMAP.md`. En provider
-  distant (Notion / AFFiNE) : pages/records via MCP + scratch `.snap/tmp/state.json`.
+  `<docsPath>/<dir>/<ID>-<slug>.md`, puis régénère `README.md` / `ROADMAP.md`. En provider
+  distant (Notion) : pages/records via MCP + scratch `.snap/tmp/state.json`.
 
 ## Config
 
-`language`, `docsPath`, `providers.doc` (`repository` | `notion` | `affine`), `define.*`,
+`language`, `docsPath`, `providers.doc` (`repository` | `notion`), `define.*`,
 et le bloc `remote.*` du provider distant choisi.
 
 ## Comportement
