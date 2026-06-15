@@ -15,8 +15,10 @@ those are due. The anti-rush lever is the **gate**: a phase refuses to run until
 previous one is complete and confirmed (`reference/product-model/core-io.md` §gate). Never
 write a structurally-complete but hollow entity.
 
-**Read before interviewing:** `${CLAUDE_PLUGIN_ROOT}/reference/product-model/discovery.md`
-(posture + quality bar). It is the method; the templates are only the output.
+**Read before interviewing:** `${CLAUDE_PLUGIN_ROOT}/reference/interview-engine.md` (the
+shared PROPOSE→TRIAGE→DIG→GATE engine + the per-phase facet gates) and
+`${CLAUDE_PLUGIN_ROOT}/reference/product-model/discovery.md` (posture + quality bar). They
+are the method; the templates are only the output.
 
 ## Available actions
 
@@ -27,8 +29,8 @@ write a structurally-complete but hollow entity.
 | 03 | `draft-brief`   | Brief discovery loop → write `BRF-001` after confirmation     | intent / audit      |
 | 04 | `define-vision` | Personas + vision + success metric → `PER-*`, update `BRF-001`| confirmed brief     |
 | 05 | `spec-feature`  | One Now feature → deep PRD body (`depth: specified`)          | roadmap + feature   |
-| 06 | `tech-review`   | Security/resilience/data/perf/deps pass → `ADR-*` + checklist | specified feature   |
-| 07 | `finalize`      | Lint gate + regenerate `INDEX.md`/`ROADMAP.md`               | any write           |
+| 06 | `tech-review`   | De-risk: value/usability/feasibility/viability/ethical → `ADR-*` + register | specified feature   |
+| 07 | `finalize`      | Lint gate + regenerate `README.md`/`ROADMAP.md`             | any write           |
 
 ## Default flow (non-sequential — the router dispatches)
 
@@ -71,19 +73,21 @@ build on an unconfirmed base.
 
 ## Transversal rules
 
-- **Discovery over forms.** Run the iterative loop (elicit → dig → restate → confirm →
-  write). Expect 2–4 rounds on the Brief. Confirm problem + vision + North Star before
-  writing `BRF-001`. Read `reference/product-model/discovery.md` first.
+- **Discovery over forms.** Run the engine loop (propose → triage → dig → gate per
+  domain), not a questionnaire. Expect 2–4 rounds on the Brief. Confirm problem + vision
+  + North Star before writing `BRF-001`. Read `reference/interview-engine.md` +
+  `reference/product-model/discovery.md` first.
 - **One phase, one job.** `/define` writes only Brief / Personas+Vision / a feature's
   spec + ADRs. It never invents the feature list (that's `/brainstorm`) or buckets
   horizons (that's `/roadmap`).
-- **Right channel.** Open prose for vision/pains/value/risks; reserve `AskUserQuestion`
-  for discrete forks (yes/no gates, picking named options).
+- **Right channel.** `AskUserQuestion` triage is the **default**: propose 3–4 expert
+  candidates, the user keeps/cuts/edits/adds. Reserve open prose for genuinely open
+  input — the vision narrative, a nuance the options miss (`reference/interview-engine.md`).
 - **Frozen templates / generated views.** Fill `templates/product-model/*.md` as-is;
-  never hand-edit `INDEX.md` / `ROADMAP.md`; never write outside `<docsPath>`.
+  never hand-edit `README.md` / `ROADMAP.md`; never write outside `<docsPath>`.
 - **Append-only decisions.** Supersede, never rewrite a settled ADR. Never overwrite an
   `approved`/`frozen` Brief without explicit confirmation.
-- **Remote backend** (`providers.doc` = notion/affine): I/O adapts per `core-io.md`;
+- **Remote backend** (`providers.doc` = notion): I/O adapts per `core-io.md`;
   the interview, id allocation and idempotence stay in this context. Secrets live in
   `.env`, never in config.
 
@@ -100,10 +104,11 @@ This **is** the map for `load-state`. Read a full entity file only to edit its b
 - `reference/brief-playbook.md` — Brief probe bank (problem, why-now, value, North Star, non-goals, risk).
 - `reference/vision-playbook.md` — Personas + Vision probe bank (JTBD, pains, triggers, success metric).
 - `reference/spec-playbook.md` — PRD body dig (scope, user flow, stories, acceptance criteria).
-- `reference/tech-playbook.md` — NFR grid (security, resilience, data protection, performance, dependencies).
+- `reference/tech-playbook.md` — the de-risk grid: the four big risks + ethical (value, usability, feasibility [incl. the NFR axes], viability, ethical).
 
 ## External data (shared product-model core — R7, never copy)
 
+- `${CLAUDE_PLUGIN_ROOT}/reference/interview-engine.md` — the shared elicitation engine (loop, calibration, per-phase facet gates, gate-state persistence).
 - `${CLAUDE_PLUGIN_ROOT}/reference/product-model/discovery.md` — interview posture + quality bar.
 - `${CLAUDE_PLUGIN_ROOT}/reference/product-model/core-io.md` — load / gate / lint / regenerate procedure.
 - `${CLAUDE_PLUGIN_ROOT}/reference/product-model/{schema,id-scheme,frontmatter-schema,checklists}.md` — the entity model.

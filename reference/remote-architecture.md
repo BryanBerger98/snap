@@ -12,12 +12,12 @@ lives only in the *model's* toolspace — so every remote read/write is an **age
 job; scripts only ever cover the `repository` provider.
 
 ```
-            repo provider                    remote provider (notion/affine/jira/github-projects)
+            repo provider                    remote provider (notion/jira/github-projects)
 read state  build-*.mjs --digest (script)    snap-loader (agent, MCP) → compact map + scratch JSON
 validate    lint-*.mjs (script, on disk)     lint-*.mjs --from-json (script, on the fetched JSON)
 render      deterministic (in the writer)    deterministic (in the writer)
 persist     Write file (parent/writer)       snap-writer (agent, MCP create/update)
-views       build-*.mjs writes INDEX/BOARD   native platform views (nothing to generate)
+views       build-*.mjs writes README/BOARD  native platform views (nothing to generate)
 provision   nothing                          snap-provisioner (agent) at /snap:init
 ```
 
@@ -74,7 +74,7 @@ with quotes/accents would die in shell escaping). The agent writes it with the
   epic/story/feature/PRD).
 - **snap-linker** (Notion only, pass 2) — after the writers return their
   `key → page-id` manifests, wires the **native Relations** from the canonical
-  key-text links. Repo and AFFiNE skip this pass.
+  key-text links. The repo provider skips this pass.
 - **snap-provisioner** (`/snap:init`, remote only) — creates the platform structure
   (Notion databases + Brief page + Roadmap view + columns incl. `snap_id`) or
   connects to an existing project (Jira/GitHub), then writes the non-secret locators
@@ -98,7 +98,7 @@ with quotes/accents would die in shell escaping). The agent writes it with the
 
 ## Provider routing
 
-- `providers.doc: repository | notion | affine` (product docs, `/define`).
+- `providers.doc: repository | notion` (product docs, `/define`).
 - `providers.tickets: repository | github-projects | jira` (delivery board,
   `/ticket`).
 - The `--digest` scripts are **provider-aware**: `repository` prints the real map;
@@ -110,7 +110,6 @@ with quotes/accents would die in shell escaping). The agent writes it with the
 
 Read the matching file **only** for the active provider:
 - `reference/persist-notion.md` — Notion MCP recipes (doc).
-- `reference/persist-affine.md` — AFFiNE recipes (doc).
 - `reference/persist-jira.md` — Jira MCP recipes (tickets).
 - `reference/persist-github-projects.md` — GitHub Projects recipes (tickets).
 - `reference/notion-schema.md` — the frontmatter → Notion column mapping.

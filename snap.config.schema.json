@@ -36,9 +36,9 @@
       "required": ["doc", "tickets", "repository", "wireframe", "design"],
       "properties": {
         "doc": {
-          "description": "Source of truth for the product docs (/define). repository = local Markdown; notion/affine = exclusively remote (D-027).",
+          "description": "Source of truth for the product docs (/define). repository = local Markdown; notion = exclusively remote (D-027).",
           "type": "string",
-          "enum": ["repository", "notion", "affine"],
+          "enum": ["repository", "notion"],
           "default": "repository"
         },
         "tickets": {
@@ -295,20 +295,6 @@
             "roadmapViewId": { "type": ["string", "null"] },
             "databases": {
               "description": "Map of entity class → Notion database id (personas, features, decisions).",
-              "type": "object",
-              "additionalProperties": { "type": ["string", "null"] }
-            }
-          }
-        },
-        "affine": {
-          "description": "AFFiNE provisioning output (providers.doc = affine). Connector pending — kept parallel to notion.",
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "workspaceId": { "type": ["string", "null"] },
-            "briefDocId": { "type": ["string", "null"] },
-            "collections": {
-              "description": "Map of entity class → AFFiNE collection id (personas, features, decisions).",
               "type": "object",
               "additionalProperties": { "type": ["string", "null"] }
             }

@@ -10,8 +10,9 @@ what they actually do, step by step, and what "done" means. Shared posture:
 - **Objectif & métrique** — the outcome it moves; restate the value hypothesis.
 - **Périmètre In / Out** — what's in this increment, what's explicitly out. Push *out*
   aggressively — the smallest shippable slice.
-- **User flow** — a valid `mermaid` flowchart named `flow-<feature-key>-<nom>`. Walk the
-  happy path **and** the key branches/errors. Name every decision point.
+- **User flow** — a numbered list of steps. Walk the happy path **and** the key
+  branches/errors as nested sub-bullets (`- alternative / erreur : …`). Name every
+  decision point. No `mermaid`.
 - **User stories** — `As a <persona>, I want <capability>, so that <benefit>.` One per
   distinct intent.
 - **Critères d'acceptation** — Given/When/Then, **testable**. Each story → at least one

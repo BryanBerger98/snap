@@ -39,22 +39,48 @@ notion-search
 If a result matches the expected title and type (database / page), reuse its id.
 Only call `notion-create-database` / `notion-create-pages` for what is missing.
 
-### Step 2 — create databases
+### Step 2 — create the Brief page first (singleton, front door)
 
-Call `notion-create-database` once per missing DB. Pass the full property schema so
-select options exist from the start (Notion rejects values that aren't in the option
-list — adding them later via `notion-update-data-source` is the escape hatch but adds
-latency). Example for **Features**:
+The Brief is the **root** of the Notion backend: a **page** (not a DB row) the three
+databases hang under. Create it **before** the databases so they can be parented to it
+(`parentPageId == briefPageId` for the DBs — the whole backend then has one front door).
+Use `notion-create-pages` with `parentId = <parentPageId>` (the workspace/page the user
+picked); **capture the returned page-id as `briefPageId`**. The page content must begin
+with a fenced YAML block (see `notion-schema.md §The Brief page`):
+
+```
+notion-create-pages
+  parentId: <parentPageId>          // the user-picked workspace/page
+  title: "Brief"
+  content: |
+    ```yaml
+    id: BRF-001
+    type: brief
+    ...
+    ```
+    # <title>
+    …PR-FAQ body…
+```
+
+### Step 3 — create the databases (parented to the Brief)
+
+Call `notion-create-database` once per missing DB, each **parented to the Brief page**
+(`parentId = <briefPageId>`, not the workspace). Pass the full property schema so select
+options exist from the start — **Notion rejects a write whose select value isn't in the
+property's option list**, so enumerate every enum option (and every known `domain` slug)
+at create; a new option needs `notion-update-data-source` **before** the first row that
+uses it (the later escape hatch, but it adds latency).
+Example for **Features**:
 
 ```jsonc
-// notion-create-database — Features
+// notion-create-database — Features (parented to the Brief)
 {
-  "parentId": "<parentPageId>",
+  "parentId": "<briefPageId>",
   "title": "Features",
   "properties": {
     "Name":        { "type": "title" },
     "snap_id":     { "type": "rich_text" },
-    "type":        { "type": "select", "options": [{ "name": "feature" }] },
+    "type":        { "type": "select", "options": [{ "name": "feature" }, { "name": "enhancement" }] },
     "status":      { "type": "select", "options": [
                      { "name": "idea" }, { "name": "discovery" }, { "name": "ready" },
                      { "name": "building" }, { "name": "shipped" }, { "name": "deprecated" }] },
@@ -69,6 +95,12 @@ latency). Example for **Features**:
     "rel_parents": { "type": "relation", "database_id": "<features-db-id>" },
     "rel_related": { "type": "relation", "database_id": "<features-db-id>" },
     // per-type extras
+    "domain":          { "type": "select", "options": [
+                         { "name": "auth" }, { "name": "orgs" }, { "name": "rgpd" },
+                         { "name": "settings" }, { "name": "admin" }, { "name": "email" },
+                         { "name": "storage" }] },   // ALL known slugs up front; a new slug needs notion-update-data-source BEFORE its first write
+    "shipped_at":      { "type": "date" },           // optional, never required (OD3) — valid even when status:shipped
+    "owner":           { "type": "rich_text" },
     "source":          { "type": "select", "options": [{ "name": "discovered" }, { "name": "inventoried" }] },
     "depth":           { "type": "select", "options": [{ "name": "stub" }, { "name": "specified" }] },
     "horizon":         { "type": "select", "options": [
@@ -79,30 +111,11 @@ latency). Example for **Features**:
 ```
 
 Apply the same pattern for **Personas** (extras: `persona_type`, `niveau_preuve`) and
-**Decisions** (extra: `supersede` rich_text). Common columns are identical across all
+**Decisions** (extras: `risk_type` select `value` \| `usability` \| `feasibility` \|
+`viability` \| `ethical`, `supersede` rich_text). Common columns are identical across all
 three; only the per-type extras differ (see `notion-schema.md §Per-type extra columns`).
 
 If a DB was reused and a column is missing, add it with `notion-update-data-source`.
-
-### Step 3 — create the Brief page (singleton)
-
-The Brief is a **page**, not a database row. Use `notion-create-pages` with
-`parentId = <parentPageId>` (not a database id). The page content must begin with a
-fenced YAML block (see `notion-schema.md §The Brief page`):
-
-```
-notion-create-pages
-  parentId: <parentPageId>
-  title: "Brief"
-  content: |
-    ```yaml
-    id: BRF-001
-    type: brief
-    ...
-    ```
-    # <title>
-    …PR-FAQ body…
-```
 
 ### Step 4 — create the Roadmap view
 
@@ -200,6 +213,34 @@ Return a compact digest to the caller — one line per entity, no raw MCP payloa
 The caller has already decided `op` (`create` or `update`) and, for update, the target
 `ref` (page-id from the loader's map). The writer never queries existence.
 
+### Render layer — body markdown → native blocks
+
+Single source of truth = the markdown templates in
+`${CLAUDE_PLUGIN_ROOT}/templates/product-model/*.md`. **Notion supports the full
+template grammar natively** — nothing is lost in translation: numbered flows stay
+numbered, sub-bullets stay nested, whole-line bold survives, and the callout **type
+carries meaning** (the whole point). The writer maps each grammar element to its
+native block:
+
+| Grammar element (template body) | Notion block | Constraint |
+|---|---|---|
+| `#` / `##` / `###` | `heading_1` / `heading_2` / `heading_3` | — |
+| `---` under every `##` | `divider` | — |
+| `> [!TIP]` | `callout` `green_background` + 💡 | colour + icon both PATCH-mutable |
+| `> [!IMPORTANT]` | `callout` `blue_background` + 📌 | — |
+| `> [!WARNING]` ("À valider") | `callout` `yellow_background` + ⚠️ | — |
+| numbered user flow | `numbered_list_item` | nesting via `children` |
+| nested alt / error branch | `bulleted_list_item` in the parent's `children` | **2 nesting levels per API call** → follow-up PATCH for deeper |
+| tables (AC / NFR / jobs) | `table` + `table_row` | **`table_width` immutable** → delete + recreate on a column change |
+| inline `**bold**` / `` `code` `` | `rich_text` annotations | — |
+| evidence tags 🟢🟡🔴 | literal emoji in `rich_text.content` | renders inside table cells |
+| meta line under H1 | `paragraph`, mixed annotations | id spans use `code:true` |
+
+Callout mapping — **type is the meaning**: `[!TIP]` → `green_background` + 💡 ·
+`[!IMPORTANT]` → `blue_background` + 📌 · `[!WARNING]` → `yellow_background` + ⚠️. Both the
+colour and the icon are mutable by `PATCH /blocks/{id}`, so a changed callout type is an
+in-place edit, not a delete + recreate.
+
 ### Create — DB row
 
 ```
@@ -250,6 +291,49 @@ Managed properties are always rewritten (idempotent). User-added Notion columns 
 never touched (they are unknown to the writer). Body blocks are replaced only when the
 rendered body differs from the fetched one — do not clobber hand-edited content
 gratuitously.
+
+### Idempotency — the `blockMap` + section-anchor diff
+
+Whole-body replace (above) is the safe fallback, but it thrashes every block on each
+write. The precise model mirrors `docMap` with a per-page **block map** so the writer
+touches only the slots that actually changed:
+
+```json
+// snap.config.json → remote.notion.blockMap[<snap_id>]
+{ "pageId": "<page-id>",
+  "blocks": { "h2:value": "<blockUUID>", "table:acceptance": "<blockUUID>", "code:yaml": "<blockUUID>" } }
+```
+
+Anchor keys derive from the section grammar (`h2:<slug>`, `table:<slug>`, `code:<lang>`,
+`callout:<kind>`) — stable across writes, so a slot is recognised even when its content
+changes.
+
+1. **Read** — `GET /blocks/{pageId}/children` (paginate 100); recurse into any block
+   with `has_children`.
+2. **Diff** — compute `fingerprint = hash(type + serialized_content)` for each desired
+   block and compare it to the live block resolved by its stored UUID.
+3. **Apply** — per logical slot:
+
+   | Condition | Action |
+   |---|---|
+   | same id, content changed | `PATCH /blocks/{id}` |
+   | same id, type changed (`h2`→`h3`) | `DELETE` + insert `after_block` the predecessor |
+   | new slot | append to `children`, `position.after_block` the predecessor |
+   | removed slot | `DELETE /blocks/{id}` (soft) |
+   | fingerprint match | **skip** (no API call — this is what kills the spurious diff) |
+
+- **Tables**: match `table_row`s by index — PATCH / append / delete rows; a column-count
+  change recreates the table (`table_width` is immutable).
+- **Bottom YAML / meta block**: always PATCH (it carries `updated`); never skip it.
+- Persist the updated `blockMap` to `snap.config.json` **atomically, on clean completion
+  only** — a partial write must not leave a half-mapped page.
+
+**API limits to respect**: 100 blocks per append, 2 nesting levels per call, `table_width`
+and a block's `type` are immutable, and there is **no reorder** primitive — design a stable
+section order and use delete + insert for a type change. When the configured MCP server
+exposes only whole-body replace (no per-block PATCH), fall back to the F1 body-changed
+rule above; the `blockMap` is the optimisation that removes the spurious diff once block
+ops are available.
 
 ### Manifest (return only this)
 

@@ -2,10 +2,12 @@
 id: {{id}}
 type: feature
 title: "{{title}}"
+domain: {{domain}}
 source: discovered
 depth: stub
 horizon: Now
 status: idea
+shipped_at: ""
 stability: living
 language: {{language}}
 created: {{date}}
@@ -14,63 +16,136 @@ links:
   parents: []
   children: []
   related: []
-board_url: ""
 owner: ""
 value_hypothesis: ""
 ---
 
-<!-- Frozen template (D-019, schema L3 — the core entity). A FEATURE is a catalogue
-     row by default (depth: stub) = title + persona (links.related) + value_hypothesis,
-     nothing else. Fill the PRD body below ONLY when depth: specified (reserved for
-     `Now` items). Render in config.language; translate headings if "en"; strip every
-     guidance comment.
+<!-- Frozen template (the core entity). A FEATURE is a catalogue row by default
+     (depth: stub) = title + persona (links.related) + value_hypothesis, nothing
+     else. Fill the PRD body below ONLY when depth: specified (reserved for `Now`
+     items). Render in config.language; translate headings if "en"; strip every
+     guidance comment on render.
 
      Frontmatter cheatsheet:
-       type      : epic | feature | enhancement   (epic = parent of features)
-       source    : discovered | inventoried        (greenfield vs brownfield audit)
-       depth     : stub | specified                (specified ⇒ keep the PRD body)
-       horizon   : Now | Next | Later | Done        → feeds the generated ROADMAP.md
-       status    : idea | discovery | ready | building | shipped | deprecated
-       parents   : parent epic (FEAT-*) and/or BRF-001
-       related   : persona(s) PER-* (+ outcome/opportunity once activated)
-       value_hypothesis : "We believe <X>, measured by <Y>." -->
+       type       : feature | enhancement   (no epic — grouping is `domain`)
+       domain     : functional-area slug — auth | orgs | rgpd | settings | admin | …
+                    MUST equal the `03-features/<slug>/` subfolder this file lives in.
+       source     : discovered | inventoried        (greenfield vs brownfield audit)
+       depth      : stub | specified                (specified ⇒ keep the PRD body)
+       horizon    : Now | Next | Later | Done        → feeds the generated ROADMAP
+       status     : idea | discovery | ready | building | shipped | deprecated
+       shipped_at : ISO date the feature shipped — optional, never required, not
+                    auto-filled. Leave "" until you know it. Sorts the ROADMAP Done.
+       parents    : BRF-001 ; related: persona(s) PER-* ; owner: person
+       value_hypothesis : "On croit <X>, mesuré par <Y>."
+
+     Snap visual grammar (markdown-first): meta line; `> [!TIP]` value-hypothesis
+     callout; `---` divider under EVERY `##`; numbered user flow with nested
+     alt/error branches; tables for acceptance criteria & NFRs; evidence tags
+     🟢/🟡/🔴; a `> [!WARNING]` "À valider" box listing the 🔴. -->
 
 # {{title}}
 
-<!-- ===== PRD body — ONLY when depth: specified. Delete this whole block for a stub. ===== -->
+`{{id}}` · {{horizon}} · {{status}} · domaine: {{domain}} · ↳ {{persona_id}}
 
-## TL;DR
-<!-- 3 lines: the deep-module interface. -->
+> [!TIP]
+> 💡 **Hypothèse de valeur** — {{value_hypothesis}}
 
-## Problème & contexte
-<!-- The need this solves (→ Opportunity once activated). -->
+<!-- ===== Stub stops here. Everything below = PRD body (depth: specified only).
+     Delete this whole block for a stub. ===== -->
 
-## Objectif & métrique
-<!-- The outcome it moves (→ Outcome once activated); restate value_hypothesis. -->
+## 🎯 Problème & contexte
 
-## Périmètre — In / Out
-<!-- What's in this increment, what's explicitly out. -->
+---
 
-## User flow
-<!-- Mermaid flowchart (schema §5). Name the block flow-<feature-key>-<nom>. -->
+<!-- The job this solves + today's workaround. 3 lines, the deep-module interface. -->
 
-```mermaid
-flowchart TD
-  A[Début] --> B{Décision ?}
-  B -->|Oui| C[Étape]
-  B -->|Non| D[Alternative]
-  C --> E[Fin]
-  D --> E[Fin]
-```
+## 📊 Objectif & métrique
 
-## User stories
-<!-- "As a <persona>, I want <capability>, so that <benefit>." Pushed to the board. -->
+---
 
-## Critères d'acceptation
-<!-- Testable conditions of done. Given/When/Then preferred. -->
+<!-- The OUTCOME it moves (a behaviour change), not an output. Restate the hypothesis. -->
 
-## Risques & questions ouvertes
+## 📦 Périmètre
 
-## Hors-périmètre explicite
+---
+
+### ✅ Inclus
+<!-- The thinnest valuable slice. -->
+
+- …
+
+### 🚫 Exclu
+<!-- Explicit exclusions — as important as what's in. Stops scope creep mid-sprint. -->
+
+- …
+
+## 🔀 User flow
+
+---
+
+1. …
+2. …
+   - alternative / erreur : …
+
+## 👤 User stories
+
+---
+
+<!-- "En tant que <persona>, je veux <capacité>, afin de <bénéfice>." INVEST. -->
+
+- En tant que …, je veux …, afin de …
+
+## ☑️ Critères d'acceptation
+
+---
+
+<!-- Given/When/Then. Happy path AND at least one sad path (erreur / pas de données). -->
+
+| # | Étant donné | Quand | Alors |
+|---|---|---|---|
+| 1 | … | … | … |
+
+## 🧰 Exigences non-fonctionnelles
+
+---
+
+<!-- The NFRs teams forget. Fill the relevant rows; mark a row `N/A — raison`. -->
+
+| Dimension | Cible |
+|---|---|
+| Performance (latence) | … |
+| Sécurité / données (RGPD) | … |
+| Accessibilité (a11y) | … |
+| Observabilité (logs / alertes) | … |
+| Compatibilité | … |
+
+## 🔌 Dépendances & instrumentation
+
+---
+
+- **Dépendances** — features / services / tiers requis.
+- **Événements analytiques** — ce qu'il faut tracer pour mesurer l'objectif.
+
+## 🚀 Déploiement
+
+---
+
+- **Mise en ligne** — flag / segment / kill-switch ?
+- **Migration** — données ou réglages existants à gérer ?
+
+## ⚠️ Risques & questions ouvertes
+
+---
 
 <!-- ===== End PRD body ===== -->
+
+## 🔗 Liens
+
+---
+
+- 👤 Persona — {{persona_title}} ({{persona_id}})
+- 📄 Brief — {{brief_title}} (BRF-001)
+
+> [!WARNING]
+> **À valider (🔴)** — {{open_assumptions}}

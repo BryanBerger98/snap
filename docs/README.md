@@ -49,7 +49,7 @@ Cette doc décrit **comment utiliser chaque skill** et **le rôle de chaque agen
 - **Contrats scratch** — les skills communiquent par petits fichiers JSON sous
   `.snap/tmp/` (jamais commités), pas par contexte partagé.
 - **Multi-provider exclusif** — un provider par domaine : tickets (GitHub Projects /
-  GitLab / Jira), docs (repository / Notion / AFFiNE), design (Penpot / Figma), code host
+  GitLab / Jira), docs (repository / Notion), design (Penpot / Figma), code host
   (GitHub / GitLab). Réglé dans `snap.config.json`.
 - **Secrets hors config** — aucun token dans `snap.config.json` ni `.mcp.json` ; les
   secrets vont dans `.env` (gitignored).

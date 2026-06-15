@@ -29,7 +29,7 @@ Aucun argument — toutes les valeurs sont collectées en interactif.
 - `.env.example` — gabarit de secrets.
 - garde-fou : `.env` ajouté au `.gitignore`.
 
-Pour un provider distant (Notion / AFFiNE / Jira / GitHub Projects), il lance
+Pour un provider distant (Notion / Jira / GitHub Projects), il lance
 [`snap-provisioner`](../agents.md#snap-provisioner) qui prépare la structure
 (bases Notion, vues…) et renvoie des **locators** (jamais de token) fusionnés dans la config.
 

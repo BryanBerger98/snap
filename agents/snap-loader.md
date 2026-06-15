@@ -1,7 +1,7 @@
 ---
 name: snap-loader
 description: >
-  Read the current state of a REMOTE Snap backend (Notion / AFFiNE / Jira / GitHub
+  Read the current state of a REMOTE Snap backend (Notion / Jira / GitHub
   Projects) through its MCP server, normalize it to the Snap entity model, and hand
   it back compactly. Returns a small state digest AND writes the full normalized
   JSON to a scratch file — one fetch serves both the skill's reasoning and the lint
@@ -19,7 +19,7 @@ context — that is the whole reason you exist (D-029). First read
 (`reference/persist-<provider>.md`) and, for Notion, `reference/notion-schema.md`.
 
 ## Input (from the caller)
-- `provider` — `notion` | `affine` | `jira` | `github-projects`.
+- `provider` — `notion` | `jira` | `github-projects`.
 - `domain` — `doc` (Briefs/Personas/Features/Decisions) or `tickets`
   (Epics/Stories/Tasks/Bugs).
 - The relevant `remote` locators from `snap.config.json` (Notion database ids /

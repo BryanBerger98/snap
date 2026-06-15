@@ -9,10 +9,10 @@ structural check, not a quality judgment.
 
 | Entity | Sections that must be present and non-empty |
 | --- | --- |
-| **Brief** (PR-FAQ) | TL;DR · Communiqué de presse (Titre/Sous-titre/Problème/Solution/Citation) · FAQ (les 5 questions) |
-| **Persona** | JTBD · Douleurs · Gains attendus · Déclencheurs / contexte d'usage · Scénarios clés |
+| **Brief** (PR-FAQ) | TL;DR · Communiqué de presse (Titre/Sous-titre/Problème/Solution/Citation) · FAQ (les 8 questions) · Hypothèse la plus risquée |
+| **Persona** | JTBD · Jobs (fonctionnel/émotionnel/social) · Douleurs · Gains attendus · Contournement actuel · Déclencheur & contexte · Forces du switch · Scénarios clés |
 | **Feature — `stub`** | frontmatter only: `title` + ≥ 1 persona in `related` + non-empty `value_hypothesis` |
-| **Feature — `specified`** | TL;DR · Problème & contexte · Objectif & métrique · Périmètre In/Out · User flow (valid `mermaid` block) · User stories · Critères d'acceptation · Risques & questions ouvertes · Hors-périmètre explicite |
+| **Feature — `specified`** | Hypothèse de valeur · Problème & contexte · Objectif & métrique · Périmètre In/Out · User flow (liste numérotée, branches alt/erreur) · User stories · Critères d'acceptation · Exigences non-fonctionnelles · Risques & questions ouvertes |
 | **Decision** (ADR) | Statut/Date header · Contexte · Décision · Alternatives · Conséquences |
 
 (Heading wording follows the entity `language`; the lists above are the `fr`
@@ -23,7 +23,9 @@ default — translate when `language: en`.)
 - Common keys present: `id`, `type`, `title`, `status`, `stability`, `language`,
   `created`, `updated`, and `links` with `parents`/`children`/`related`.
 - `status` is in the entity's allowed enum (see `frontmatter-schema.md`).
-- A `feature` has `source`, `depth`, `horizon`; `depth: specified` ⇒ PRD body present.
+- A `feature` has `source`, `depth`, `horizon`, and `domain` (= its `03-features/<slug>/`
+  subfolder); `shipped_at` is optional (never required, even when `status: shipped`);
+  `depth: specified` ⇒ PRD body present.
 - `parents`/`related`/`supersede` reference IDs that exist (warn on dangling).
 
 ## Guardrails (from the schema)

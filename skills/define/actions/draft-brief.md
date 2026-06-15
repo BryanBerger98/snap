@@ -8,7 +8,7 @@ anchor of the whole base — spend the most time here.
 
 ## Outputs
 
-`<docsPath>/brief/BRF-001-<slug>.md` from `templates/product-model/brief.md`, plus
+`<docsPath>/01-brief/BRF-001-<slug>.md` from `templates/product-model/brief.md`, plus
 `briefConfirmedAt` stamped in `.snap/define-progress.json`.
 
 ## Depends on
@@ -28,5 +28,5 @@ anchor of the whole base — spend the most time here.
 ## Test
 
 `node ${CLAUDE_PLUGIN_ROOT}/scripts/lint-docs.mjs <project_dir>` exits 0 and `BRF-001`
-passes the Brief checklist (TL;DR · Communiqué complet · FAQ 5 réponses non vides). The
-file is **not** written before `briefConfirmedAt` is set.
+passes the Brief checklist (TL;DR · Communiqué complet · FAQ 8 réponses non vides ·
+Hypothèse la plus risquée). The file is **not** written before `briefConfirmedAt` is set.

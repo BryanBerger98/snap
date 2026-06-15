@@ -8,7 +8,7 @@ enriches the Brief's vision — no new entity type.
 
 ## Outputs
 
-`<docsPath>/personas/PER-*.md` (1–3, `proto`) from `templates/product-model/persona.md`,
+`<docsPath>/02-personas/PER-*.md` (1–3, `proto`) from `templates/product-model/persona.md`,
 plus an updated `BRF-001` (vision + success-metric answers in the FAQ).
 
 ## Depends on

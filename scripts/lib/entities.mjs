@@ -5,7 +5,7 @@
  * Materializes the normalized entity model decided in D-028 and used by every
  * deterministic script (`build-index`, `build-board`, `lint-docs`, `lint-tickets`)
  * — the seam that lets the same validator / view-generator run on a repo source
- * (local Markdown) OR a remote source (Notion / AFFiNE / Jira / GitHub Projects)
+ * (local Markdown) OR a remote source (Notion / Jira / GitHub Projects)
  * fetched by an agent and handed over as a normalized JSON file.
  *
  * Normalized entity (D-028):
@@ -49,7 +49,7 @@ export function toEntity(data, body, source, withBody = false) {
  * @param {string} dir absolute directory
  * @param {{withBody?:boolean, skip?:string[]}} opts
  *   withBody: also carry the body (lint + write); default false (views + digest).
- *   skip: basenames to ignore (generated views — INDEX.md, BOARD.md, …).
+ *   skip: basenames to ignore (generated views — README.md, BOARD.md, …).
  * Entities with no/invalid frontmatter are kept (id/type null, fm null) so the
  * linter can still report "no frontmatter"; the view generators filter them out.
  */
@@ -123,7 +123,7 @@ export function loadFromJson(path) {
 // Round-trips both loaders against a throwaway fixture in the OS temp dir and
 // asserts they yield the same normalized shape. Self-contained (no repo state).
 if (process.argv.includes("--selftest")) {
-  const { mkdtempSync, writeFileSync, rmSync } = await import("node:fs");
+  const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = await import("node:fs");
   const { tmpdir } = await import("node:os");
   const assert = (cond, msg) => {
     if (!cond) {
@@ -138,22 +138,32 @@ if (process.argv.includes("--selftest")) {
       join(dir, "FEAT-001-x.md"),
       "---\nid: FEAT-001\ntype: feature\ntitle: X\nstatus: ready\n---\n\n## Body\nhello\n"
     );
-    writeFileSync(join(dir, "INDEX.md"), "# generated, no frontmatter\n");
+    writeFileSync(join(dir, "README.md"), "# generated, no frontmatter\n");
     writeFileSync(join(dir, "broken.md"), "no frontmatter here\n");
+    // nested feature under a per-domain subfolder (03-features/<slug>/) —
+    // proves the recursive walk reaches one level deep (P3 arborescence).
+    mkdirSync(join(dir, "auth"), { recursive: true });
+    writeFileSync(
+      join(dir, "auth", "FEAT-002-login.md"),
+      "---\nid: FEAT-002\ntype: feature\ntitle: Login\nstatus: ready\ndomain: auth\n---\n\n## Body\nnested\n"
+    );
 
     // loadFromFs without body, skipping the generated view
-    const fs1 = loadFromFs(dir, { skip: ["INDEX.md"] });
-    assert(fs1.length === 2, `fs: expected 2 entities, got ${fs1.length}`);
+    const fs1 = loadFromFs(dir, { skip: ["README.md"] });
+    assert(fs1.length === 3, `fs: expected 3 entities, got ${fs1.length}`);
     const feat = fs1.find((e) => e.id === "FEAT-001");
     assert(feat && feat.type === "feature", "fs: FEAT-001 type");
     assert(feat.source.provider === "repo", "fs: provider repo");
     assert(feat.source.ref === "FEAT-001-x.md", "fs: ref = path");
     assert(!("body" in feat), "fs: no body when withBody=false");
+    const nested = fs1.find((e) => e.id === "FEAT-002");
+    assert(nested, "fs: nested FEAT-002 found by recursive walk");
+    assert(nested.source.ref === "auth/FEAT-002-login.md", "fs: nested ref carries subfolder");
     const broken = fs1.find((e) => e.source.ref === "broken.md");
     assert(broken && broken.id === null && broken.fm === null, "fs: broken kept with null id");
 
     // loadFromFs with body
-    const fs2 = loadFromFs(dir, { withBody: true, skip: ["INDEX.md"] });
+    const fs2 = loadFromFs(dir, { withBody: true, skip: ["README.md"] });
     const feat2 = fs2.find((e) => e.id === "FEAT-001");
     assert(feat2.body.includes("hello"), "fs: body carried when withBody=true");
 

@@ -54,7 +54,7 @@ no color, no imagery. The goal is layout and flow, fast and disposable.
 
 ### 3. Load the source
 - Glob `<docsPath>/**/*.md`; read the **`specified` Features** and their **user flow**
-  (the flow section / Mermaid in the PRD body). A `stub` Feature has no flow → tell the
+  (the numbered flow section in the PRD body). A `stub` Feature has no flow → tell the
   user to `/define features` first.
 - Glob `<ticketsPath>/**/*.md`; for each Feature's Epic, read its **Stories** — each Story
   is a screen **state/variant** to wireframe (its acceptance criteria describe the states).

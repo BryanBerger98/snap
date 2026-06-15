@@ -21,7 +21,7 @@ say otherwise. The roadmap is a **generated view**; this skill sets each feature
 | 01 | `load-state`     | Load state; **gate**: ≥ 1 feature in the catalogue            | project dir    |
 | 02 | `prioritize`     | Assign Now/Next/Later vs the vision; enforce the Later-heavy rule | catalogue + brief |
 | 03 | `apply-horizons` | Write `horizon` on each `FEAT-*`; stamp `roadmapReviewedAt`   | decisions      |
-| 04 | `finalize`       | Lint + regenerate `ROADMAP.md` / `INDEX.md`                  | writes         |
+| 04 | `finalize`       | Lint + regenerate `ROADMAP.md` / `README.md`                | writes         |
 
 ## Default flow
 

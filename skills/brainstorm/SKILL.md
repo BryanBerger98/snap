@@ -29,13 +29,18 @@ tell the user to run `/define`** (you can't brainstorm against thin air).
 
 ## Transversal rules
 
+- **This is Phase 3 (Ideate) of the interview engine.** Run propose → triage → dig →
+  gate (`reference/interview-engine.md` §Phase 3); gate the Ideate facets `I1`–`I5`
+  (divergence coverage, value hypothesis, pain link, domain slug, convergence scoring).
 - **Diverge before you converge.** Generate broadly first (matrix of persona × pain,
   adjacent jobs, competitor patterns, edge scenarios). Do not filter while generating.
-- **You contribute.** Propose ideas the user didn't raise — that's the point. Reactive
-  transcription is the failure this skill avoids.
-- **Every survivor serves a pain.** A feature linked to no persona pain is cut or parked.
-- **Stubs only.** One line each: title + persona (`related`) + value hypothesis. No PRD
-  body here (JIT — that's `/define --spec`).
+- **You contribute.** Propose 3–4 expert candidates per cell the user didn't raise — the
+  user triages. Reactive transcription is the failure this skill avoids.
+- **Every survivor clears the convergence bar.** A feature survives only if it serves a
+  real 🟢 pain, is not Kano *Indifferent*, scores above the batch on Opportunity, and
+  ladders to the North Star (engine §2.7). One linked to no persona pain is cut or parked.
+- **Stubs only.** One line each: title + persona (`related`) + value hypothesis + domain.
+  No PRD body here (JIT — that's `/define --spec`).
 
 ## References (documents to read)
 
@@ -43,6 +48,7 @@ tell the user to run `/define`** (you can't brainstorm against thin air).
 
 ## External data (shared product-model core — R7, never copy)
 
+- `${CLAUDE_PLUGIN_ROOT}/reference/interview-engine.md` — the shared elicitation engine (Phase 3 Ideate: facets `I1`–`I5` + convergence bar).
 - `${CLAUDE_PLUGIN_ROOT}/reference/product-model/core-io.md` — load / gate / lint / regenerate.
 - `${CLAUDE_PLUGIN_ROOT}/reference/product-model/{discovery,id-scheme,frontmatter-schema,checklists}.md`.
 - `${CLAUDE_PLUGIN_ROOT}/templates/product-model/feature.md` — frozen feature template (stub shape).

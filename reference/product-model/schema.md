@@ -20,6 +20,6 @@ This file is a **pointer** (R7 — never copy the model). For the actual rules, 
 | Feature (specified) | `FEAT-` | `/define --spec` | PRD body when `depth: specified` (Now only) |
 | Decision (ADR) | `ADR-` | `/define --spec`, `/roadmap` | append-only |
 
-Generated views (`INDEX.md`, `ROADMAP.md`) are never authored by hand — see `core-io.md`.
+Generated views (`README.md`, `ROADMAP.md`) are never authored by hand — see `core-io.md`.
 The canonical layered schema lives at `${CLAUDE_PROJECT_DIR}`-independent source
 `plan/schema-documentation-produit.md` in the Snap repo.

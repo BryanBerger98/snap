@@ -7,7 +7,7 @@
  * keys (e.g. providers) are preserved.
  *
  * Usage: node init-config.mjs <projectDir> [--language fr|en] [--docsPath <path>]
- *          [--ticketsPath <path>] [--docProvider repository|notion|affine]
+ *          [--ticketsPath <path>] [--docProvider repository|notion]
  *          [--ticketsProvider repository|github-projects|jira]
  *          [--repoProvider github|gitlab|auto] [--developMode gate|autonomous]
  *          [--reviewDimensions correctness,security,conventions,quality]
@@ -28,7 +28,7 @@
  * Problems are reported on stderr as warnings.
  */
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 function parseArgs(argv) {
@@ -126,7 +126,7 @@ if (argv.ticketsPath != null) {
   }
 }
 
-const DOC_PROVIDERS = ["repository", "notion", "affine"];
+const DOC_PROVIDERS = ["repository", "notion"];
 const TICKETS_PROVIDERS = ["repository", "github-projects", "jira"];
 function ensureProviders() {
   if (config.providers == null || typeof config.providers !== "object")
@@ -329,7 +329,7 @@ if (argv.remoteJson != null) {
     const parsed = JSON.parse(readFileSync(resolve(projectDir, argv.remoteJson), "utf8"));
     if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
       if (config.remote == null || typeof config.remote !== "object") config.remote = {};
-      for (const key of ["notion", "affine", "jira", "githubProjects"]) {
+      for (const key of ["notion", "jira", "githubProjects"]) {
         if (parsed[key] && typeof parsed[key] === "object") {
           config.remote[key] = { ...(config.remote[key] || {}), ...parsed[key] };
           changes.push(`remote.${key}`);
@@ -411,4 +411,29 @@ try {
   );
 } catch (err) {
   console.warn(`[snap] init warning: could not write snap.config.json: ${err.message}`);
+}
+
+// --- scaffold the numbered doc tree (OD2) ----------------------------------
+// Create the four entity dirs so the front door exists before the first write.
+// Repo provider only — a remote doc base (notion) has no local tree.
+// Idempotent (mkdir -p); each write-action also mkdir -p's its own target, so the
+// tree still appears even if init was skipped (double safety net).
+const docProvider =
+  config.providers && config.providers.doc ? String(config.providers.doc) : "repository";
+if (docProvider === "repository" || docProvider === "repo") {
+  const base = resolve(projectDir, config.docsPath || DEFAULT_CONFIG.docsPath);
+  const SUBDIRS = ["01-brief", "02-personas", "03-features", "04-decisions"];
+  const made = [];
+  for (const sub of SUBDIRS) {
+    const dir = join(base, sub);
+    try {
+      if (!existsSync(dir)) {
+        mkdirSync(dir, { recursive: true });
+        made.push(sub);
+      }
+    } catch (err) {
+      console.warn(`[snap] init: could not scaffold ${sub}/: ${err.message}`);
+    }
+  }
+  if (made.length) console.log(`[snap] init: scaffolded doc tree (${made.join(", ")}).`);
 }

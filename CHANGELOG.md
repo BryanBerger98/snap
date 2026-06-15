@@ -3,7 +3,51 @@
 All notable changes to the Snap plugin are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/), semver versioning.
 
-## [2.2.0] — 2026-06-05
+## [2.3.0] — 2026-06-15
+
+Full rebuild of the product-definition core. **Migration note** — the docs tree, the
+frontmatter schema and the document-provider set all changed; existing product folders
+from an earlier Snap version must be migrated before `/define`, `build-index.mjs` or
+`lint-docs.mjs` will run clean.
+
+### Added — interview engine + risk model
+- **Conversational interview engine** (`reference/interview-engine.md`). Every `/define`
+  phase now runs a `PROPOSE → TRIAGE → DIG → GATE` loop instead of free-form Q&A:
+  Claude proposes, the user triages, Claude digs into gaps, then a gate confirms the
+  artifact before advancing. `AskUserQuestion` (multi-select) is the default channel.
+  Five phases — Frame→Brief, Discover→Personas, Ideate→Features, Specify→Feature,
+  De-risk→ADR — each backed by a facet checklist (Frame F1–F9, Discover D1–D8,
+  Ideate I1–I5, Specify S1–S11, De-risk R1–R5) so no question is silently skipped (D-053).
+- **5 big risks** as the de-risking spine. `/define --spec`'s technical review now settles
+  **value / usability / feasibility / viability / ethical** (Cagan + ethical); the former
+  NFR grid nests under Feasibility. ADRs carry the risk they retire.
+- **Three frontmatter fields.** `domain` (structural — must equal the
+  `03-features/<slug>/` subfolder, lint-enforced), `shipped_at` (optional, never required,
+  never auto-filled, ISO if present — sorts the ROADMAP *Done* group), and `risk_type` on
+  ADRs (`value | usability | feasibility | viability | ethical`) (D-052).
+
+### Changed — tree, front-door, brief, flows
+- **Numbered, domain-nested docs tree** (D-049): `01-brief/`, `02-personas/`,
+  `03-features/<domain>/`, `04-decisions/`. Features now nest by domain slug; the deeper
+  walk is handled end-to-end by `entities.mjs`, `lint-docs.mjs` and `build-index.mjs`.
+- **`INDEX.md` → `README.md`** as the generated product front-door (D-048); `build-index.mjs`
+  writes `README.md` (Index produit) + `ROADMAP.md` (Now/Next/Later/Done with a Domaine
+  column) and skips both on its own walk.
+- **Brief visual grammar.** PR-FAQ rebuilt as an 8-question FAQ (Pourquoi maintenant /
+  Pour qui / Alternatives / Ce qui nous rend uniques / Mesure du succès / Ce qu'on ne fait
+  PAS / Taille d'opportunité / Risques & inconnues), a dedicated 🎯 *Hypothèse la plus
+  risquée* section, evidence tags (🟢 evidence / 🟡 belief / 🔴 assumption) and an
+  *À valider* warning box. Vision implicite/cible is brownfield-only.
+- **User flows are numbered steps, not mermaid.** Specified features render flows as
+  ordered lists with nested alt/error branches; `lint-docs.mjs` warns on mermaid.
+
+### Removed — AFFiNE backend
+- **AFFiNE document provider dropped** (D-050, supersedes D-036). `providers.doc` is now
+  `repository | notion`. The Notion render-layer (D-051) maps the markdown-first grammar to
+  native Notion blocks (numbered flows, `blockMap[snap_id]` idempotence, Brief-page-first
+  provisioning); the repository provider stays the deterministic source of truth.
+
+
 
 ### Removed — `SessionStart` hook no longer bootstraps config (bugfix)
 - **`hooks/hooks.json` is now empty (`{ "hooks": {} }`).** The `SessionStart` hook ran

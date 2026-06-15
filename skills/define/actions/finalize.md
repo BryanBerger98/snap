@@ -8,7 +8,7 @@ writing path (mirrors `roadmap`/`brainstorm` `finalize`).
 
 ## Outputs
 
-A clean lint (exit 0) and refreshed `<docsPath>/INDEX.md` + `<docsPath>/ROADMAP.md`
+A clean lint (exit 0) and refreshed `<docsPath>/README.md` + `<docsPath>/ROADMAP.md`
 (repo), or validated remote state (remote).
 
 ## Process
@@ -26,4 +26,4 @@ A clean lint (exit 0) and refreshed `<docsPath>/INDEX.md` + `<docsPath>/ROADMAP.
 ## Test
 
 `node ${CLAUDE_PLUGIN_ROOT}/scripts/lint-docs.mjs <project_dir>` exits 0 and
-`INDEX.md`/`ROADMAP.md` are regenerated (not hand-edited).
+`README.md`/`ROADMAP.md` are regenerated (not hand-edited).

@@ -27,12 +27,12 @@ Le moment créatif de la définition produit. Contrairement au monolithe d'avant
 
 - **Lit** : `snap.config.json` (`language`, `docsPath`, `providers.doc`), le digest d'état,
   le Brief + les personas, le template partagé `templates/product-model/feature.md`.
-- **Écrit** : `FEAT-*` (`depth: stub`) sous `<docsPath>/features/`, puis régénère
-  `INDEX.md` / `ROADMAP.md`. La priorisation (`horizon`) n'est **pas** faite ici.
+- **Écrit** : `FEAT-*` (`depth: stub`) sous `<docsPath>/03-features/<domain>/`, puis régénère
+  `README.md` / `ROADMAP.md`. La priorisation (`horizon`) n'est **pas** faite ici.
 
 ## Config
 
-`language`, `docsPath`, `providers.doc` (`repository` | `notion` | `affine`).
+`language`, `docsPath`, `providers.doc` (`repository` | `notion`).
 
 ## Comportement
 
