@@ -3,6 +3,32 @@
 All notable changes to the Snap plugin are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/), semver versioning.
 
+## [2.4.0] — 2026-06-16
+
+### Added — skippable Vision phase
+- **`/define` Vision is now optional.** At the end of the Brief (and on any no-arg entry
+  into the Vision rung), `/define` offers a 4-way choice: continue to Vision, skip it and
+  go to `/brainstorm`, skip it and stop, or define it later. The choice is recorded and
+  **never re-proposed** — the user re-enters Vision on purpose via `/define -v`.
+- **Auto-drafted, user-validated proto-persona on skip.** Skipping the deep interview
+  still seeds one proto-`PER-001` derived from the Brief (target customer ← `F2`, primary
+  job + top pain ← `F1`, gain ← value line; every item tagged 🔴). `/define` explains
+  *why* at least one persona is required (`/brainstorm` challenges every feature against a
+  real persona pain) and the user confirms or corrects the draft before it is written — no
+  hollow write.
+- **Two new gate signals** in `.snap/define-progress.json`: `visionSkippedAt` (waived —
+  proto-persona written) and `visionDeferredAt` (deferred — nothing written, router stops
+  proposing Vision). Mutually exclusive.
+
+### Changed
+- `define-vision` gains `full` / `skip` / `defer` modes; `draft-brief` ends by handing off
+  to the Vision entry choice; `load-state` resolves the Vision rung from the new signals
+  and no longer loops on a missing persona. `/brainstorm` is unchanged (its `≥ 1 PER-*`
+  gate is satisfied by the seeded proto-persona).
+- Docs updated: `interview-engine.md` (Discover is the one waivable phase), `core-io.md`
+  (progress-marker signals), `docs/skills/define.md`, plus a new `define` eval scenario
+  for the skip intent.
+
 ## [2.3.0] — 2026-06-15
 
 Full rebuild of the product-definition core. **Migration note** — the docs tree, the
