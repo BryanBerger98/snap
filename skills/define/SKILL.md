@@ -1,6 +1,6 @@
 ---
 name: define
-description: "Define a product as a versioned Markdown knowledge base — Brief (PR-FAQ), Personas + Vision, feature specs and technical decisions — through a GATED discovery session. Routes by flag: --new/-n frames the Brief, --vision/-v digs personas, vision and the success metric, --spec/-s specifies one Now feature plus its technical concerns; with no flag it advances to the next unmet phase and redirects to /brainstorm or /roadmap when those are due. Use when the user wants to define, frame, scope, or document a product or feature. Do NOT use for brainstorming the feature list (use /brainstorm) or prioritizing the roadmap (use /roadmap)."
+description: "Define a product as a versioned Markdown knowledge base — Brief (PR-FAQ), Personas + Vision, feature specs and technical decisions — through a GATED discovery session. Routes by flag: --new/-n frames the Brief, --vision/-v digs personas, vision and the success metric (a skippable phase: the user can waive it for an auto-derived proto-persona, or defer it), --spec/-s specifies one Now feature plus its technical concerns; with no flag it advances to the next unmet phase and redirects to /brainstorm or /roadmap when those are due. Use when the user wants to define, frame, scope, or document a product or feature. Do NOT use for brainstorming the feature list (use /brainstorm) or prioritizing the roadmap (use /roadmap)."
 argument-hint: "[-n|--new | -v|--vision | -s|--spec <feature>]"
 disable-model-invocation: false
 allowed-tools: Read, Write, Edit, Glob, Grep, AskUserQuestion, Task, Bash(git *), Bash(node *)
@@ -45,27 +45,35 @@ No argument → advance to the next **unmet** phase (read from `load-state`), re
 to the sibling skills when it is their turn:
 
 ```
-1. no Brief                         → draft-brief
-2. Brief confirmed, no Personas     → define-vision
-3. Brief+Vision ok, no Features     → STOP, tell the user to run /brainstorm
-4. Features exist, roadmap not run  → STOP, tell the user to run /roadmap
-5. roadmap run, Now feature unspec'd→ spec-feature → tech-review
-6. all Now specified                → propose next (new feature, or done)
+1. no Brief                          → draft-brief
+2. Brief confirmed, no vision choice → define-vision (presents the entry choice:
+                                         continue · skip→brainstorm · skip→stop · later)
+   ├ visionSkippedAt set             → Vision satisfied (proto-persona exists), go to 3
+   └ visionDeferredAt set            → STOP, vision-deferred (user runs /define -v)
+3. Brief+Vision ok, no Features      → STOP, tell the user to run /brainstorm
+4. Features exist, roadmap not run   → STOP, tell the user to run /roadmap
+5. roadmap run, Now feature unspec'd → spec-feature → tech-review
+6. all Now specified                 → propose next (new feature, or done)
 ```
+
+Once the user has picked at the Vision entry choice, the router **never re-proposes
+Vision** — the choice is recorded (`visionSkippedAt` / `visionDeferredAt`) and the user
+re-enters it only on purpose via `/define -v`.
 
 `/define` **redirects by message** (it never auto-invokes `/brainstorm` or `/roadmap`) —
 this keeps each skill's context clean (D-045).
 
 ## Gates (when a phase may run — O2 hybrid)
 
-State is read from the entity digest; two non-derivable signals live in
-`.snap/define-progress.json` (`briefConfirmedAt`, `roadmapReviewedAt`). Full mechanic in
+State is read from the entity digest; four non-derivable signals live in
+`.snap/define-progress.json` (`briefConfirmedAt`, `roadmapReviewedAt`, `visionSkippedAt`,
+`visionDeferredAt`). Full mechanic in
 `${CLAUDE_PLUGIN_ROOT}/reference/product-model/core-io.md`.
 
 | Phase | Gate (must be true to start) |
 | --- | --- |
 | Brief | — (entry point) |
-| Vision | `BRF-001` exists **and** `briefConfirmedAt` set |
+| Vision | `BRF-001` exists **and** `briefConfirmedAt` set. Skippable: the entry choice waives it (`visionSkippedAt`, auto proto-persona) or defers it (`visionDeferredAt`). |
 | Spec + Tech | `roadmapReviewedAt` set **and** the target feature is `horizon: Now` |
 
 If a gate fails, **stop and tell the user which skill to run first** — never silently

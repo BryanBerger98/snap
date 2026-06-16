@@ -234,6 +234,12 @@ pains ranked by severity × frequency; emotional/social jobs captured, not only 
 
 **Output:** `PER-*` with evidence tags + a per-persona "À valider" box.
 
+**Skippable:** this is the one waivable phase. At the Vision entry choice the user can
+**skip** it (one proto-`PER-001` is auto-drafted from the Brief — every item 🔴 — then the
+user is told *why* ≥ 1 persona is required and confirms it before it's written, so
+`/brainstorm` stays unblocked; `visionSkippedAt` stamped) or **defer** it (nothing written,
+`visionDeferredAt` stamped, the router stops proposing it). Mechanic in `define-vision.md`.
+
 ---
 
 ### Phase 3 — IDEATE → Feature catalogue (`write-stubs`)
@@ -348,8 +354,9 @@ register rolls up every 🔴 from phases 1–4.
 
 Coverage survives across sessions so a resumed interview knows what is already covered.
 This file complements `.snap/define-progress.json` (which holds the **phase-level** gates
-`briefConfirmedAt` / `roadmapReviewedAt`); `interview-state.json` holds the **within-phase
-facet** coverage. It is scratch state — never written to `<docsPath>`, never linted.
+`briefConfirmedAt` / `roadmapReviewedAt` and the Vision-waive signals `visionSkippedAt` /
+`visionDeferredAt`); `interview-state.json` holds the **within-phase facet** coverage. It
+is scratch state — never written to `<docsPath>`, never linted.
 
 ```json
 {
@@ -374,6 +381,11 @@ Rules:
 - **`gatePassedAt`** is stamped (date) only when every facet is `covered` or `waived`.
 - Write atomically after each GATE; `mkdir -p .snap` first. If the file is absent or
   malformed, treat every facet as `missing` (safe default — re-asks, never skips).
+- **Phase-level waive (Discover only).** When the user skips Vision, mark the `discover`
+  facets `waived` (reason: *"vision skipped — proto-persona auto-derived"*), leave
+  `gatePassedAt: null`, and record the decision at the phase level in
+  `.snap/define-progress.json` (`visionSkippedAt`). Defer writes neither — only
+  `visionDeferredAt`.
 
 ---
 

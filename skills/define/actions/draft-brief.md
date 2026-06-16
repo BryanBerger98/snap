@@ -24,6 +24,9 @@ anchor of the whole base — spend the most time here.
 4. Write `BRF-001` (singleton — reuse `001`), strip guidance comments, set `created`/
    `updated` to today, `status: draft`.
 5. Stamp `briefConfirmedAt` once the user confirmed. Run `finalize`.
+6. **Hand off to Vision.** Present the Vision entry choice (`define-vision` §Entry choice):
+   continue to Vision · skip → brainstorm · skip → stop · Vision later. Dispatch
+   accordingly — never silently jump into the Vision interview.
 
 ## Test
 

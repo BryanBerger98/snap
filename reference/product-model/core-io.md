@@ -45,15 +45,22 @@ parents). A feature's `domain` frontmatter **must equal** its `03-features/<slug
 subfolder — the linter errors on drift.
 
 ## Progress marker (hybrid gate — O2)
-Two facts are **not** derivable from entity frontmatter, so they live in
+These facts are **not** derivable from entity frontmatter, so they live in
 `<docsPath>/../.snap/define-progress.json` (create on first write):
 ```json
-{ "briefConfirmedAt": "<date>", "roadmapReviewedAt": "<date>" }
+{ "briefConfirmedAt": "<date>", "roadmapReviewedAt": "<date>", "visionSkippedAt": "<date>", "visionDeferredAt": "<date>" }
 ```
 - `briefConfirmedAt` — set by `draft-brief` only after the user confirms the Brief.
   A `BRF-001` file existing is **not** confirmation.
 - `roadmapReviewedAt` — set by `roadmap`'s `apply-horizons`. A feature's `horizon: Now`
   is the template default and does **not** prove the roadmap pass ran.
+- `visionSkippedAt` — set by `define-vision` when the user **waives** the Vision phase. A
+  lean proto-`PER-001` is auto-derived from the Brief so the chain stays buildable; the
+  router then treats Vision as satisfied.
+- `visionDeferredAt` — set when the user chooses to do Vision **later themselves**: no
+  persona is written and the router **stops proposing** Vision. The user resumes with
+  `/define -v`. Mutually exclusive with `visionSkippedAt`; both are absent until the user
+  picks at the Vision entry choice.
 Everything else (does `BRF-001` exist, are there `PER-*`, are there `FEAT-*`) is read
 from the digest. Never duplicate entity state into this file.
 

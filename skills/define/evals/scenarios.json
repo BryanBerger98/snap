@@ -22,6 +22,12 @@
   },
   {
     "type": "should",
+    "prompt": "On n'a pas besoin de personas détaillés, passe la vision",
+    "expect_action": "define-vision",
+    "note": "Intention de skip → define-vision gère le choix d'entrée (skip / différer / proto-persona auto)"
+  },
+  {
+    "type": "should",
     "prompt": "Spécifie en détail la feature de connexion par e-mail",
     "expect_action": "spec-feature"
   },

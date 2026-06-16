@@ -11,8 +11,8 @@ no-arg router should enter (or which gate a flag invocation must pass).
 
 ```
 mode: greenfield | brownfield
-progress: { briefConfirmedAt, roadmapReviewedAt }   # from .snap/define-progress.json
-next_phase: draft-brief | define-vision | redirect:/brainstorm | redirect:/roadmap | spec-feature | done
+progress: { briefConfirmedAt, roadmapReviewedAt, visionSkippedAt, visionDeferredAt }   # from .snap/define-progress.json
+next_phase: draft-brief | define-vision | redirect:/brainstorm | redirect:/roadmap | spec-feature | vision-deferred | done
 ```
 
 ## Process
@@ -27,6 +27,14 @@ next_phase: draft-brief | define-vision | redirect:/brainstorm | redirect:/roadm
 5. **No-arg** → walk the ladder (SKILL.md §Default flow) against the digest + progress,
    and return the first unmet phase. Steps 3 and 4 of the ladder are **redirects**, not
    actions — return `redirect:/brainstorm` or `redirect:/roadmap`.
+6. **Vision is resolved** at the Vision rung once the user has chosen — do **not**
+   re-propose it:
+   - `visionSkippedAt` set ⇒ a proto-persona exists ⇒ Vision is satisfied, advance to the
+     next rung (brainstorm).
+   - `visionDeferredAt` set ⇒ return `vision-deferred` (stop; tell the user to run
+     `/define -v` when ready). Never return `define-vision` for a no-arg run.
+   - neither set, Brief confirmed, no `PER-*` ⇒ return `define-vision` (it presents the
+     entry choice).
 
 ## Test
 

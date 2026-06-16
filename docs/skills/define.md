@@ -15,7 +15,14 @@ autres (génération des features, priorisation) sont des skills sœurs.
 - **Brief** (`-n`) — creuse l'idée brute : problème, pour qui, valeur en une phrase,
   métrique-étoile, non-buts, risque. Écrit **seulement** le Brief.
 - **Vision** (`-v`) — personas (job à accomplir, douleurs, déclencheurs) + vision +
-  **critère de succès**. Enrichit le Brief.
+  **critère de succès**. Enrichit le Brief. **Phase facultative** : à la fin du Brief,
+  `/define` propose 4 options — continuer vers la vision · la passer puis enchaîner
+  `/brainstorm` · la passer et s'arrêter · la définir plus tard. « Passer » génère un
+  proto-persona auto-dérivé du Brief (tout en 🔴 « à valider ») : `/define` **explique
+  pourquoi au moins 1 persona est requis** (`/brainstorm` challenge chaque feature contre
+  une douleur de persona réelle) et **te le fait valider** avant de l'écrire — un tour
+  léger, pas l'entretien complet. « plus tard » n'écrit rien et le routeur cesse de la
+  proposer (relance `-v` toi-même). Le choix est enregistré, jamais reproposé.
 - **Spec + Tech** (`-s`) — une feature *Now* à la fois : PRD complet (parcours, user
   stories, critères d'acceptation testables) **puis** passe enjeux techniques (sécurité,
   résilience, données, performance, dépendances) → fiches de décision (ADR) + checklist.
@@ -30,9 +37,11 @@ autres (génération des features, priorisation) sont des skills sœurs.
 ```
 
 Sans argument, le routeur lit l'état et entre dans la prochaine phase due : pas de
-Brief → Brief ; Brief confirmé sans persona → Vision ; Brief + Vision mais aucune
-feature → **stop, lance `/brainstorm`** ; features sans roadmap → **stop, lance
-`/roadmap`** ; roadmap passée + feature *Now* non spécifiée → Spec + Tech.
+Brief → Brief ; Brief confirmé sans choix de vision → Vision (propose le choix 4 options) ;
+vision passée (`visionSkippedAt`) → on enchaîne ; vision différée (`visionDeferredAt`) →
+**stop, relance `/define -v` toi-même** ; Brief + Vision mais aucune feature → **stop,
+lance `/brainstorm`** ; features sans roadmap → **stop, lance `/roadmap`** ; roadmap
+passée + feature *Now* non spécifiée → Spec + Tech.
 
 ## Entrées / Sorties
 
@@ -50,8 +59,9 @@ et le bloc `remote.*` du provider distant choisi.
 
 ## Comportement
 
-**Phases verrouillées.** Les verrous lisent l'état des entités + deux signaux non
-dérivables (`briefConfirmedAt`, `roadmapReviewedAt`) dans `.snap/define-progress.json`. Un
+**Phases verrouillées.** Les verrous lisent l'état des entités + quatre signaux non
+dérivables (`briefConfirmedAt`, `roadmapReviewedAt`, `visionSkippedAt`, `visionDeferredAt`)
+dans `.snap/define-progress.json`. Un
 verrou non satisfait **stoppe et nomme la skill à lancer** — jamais de construction sur une
 base non confirmée. `/define` **redirige par message**, n'auto-appelle pas les skills
 sœurs (contexte propre).
