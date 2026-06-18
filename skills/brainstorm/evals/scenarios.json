@@ -1,24 +1,27 @@
 [
   {
     "type": "should",
-    "prompt": "Liste-moi toutes les features possibles pour ce produit",
-    "expect_action": "diverge-features"
+    "prompt": "/brainstorm faudrait que les gens reviennent plus souvent dans l'app",
+    "expect_action": "load-state",
+    "note": "Idée brute donnée au lancement → charger le contexte puis enquêter, jamais sauter à une forme"
   },
   {
     "type": "should",
-    "prompt": "/brainstorm",
-    "expect_action": "diverge-features"
+    "prompt": "J'ai une idée mais je n'arrive pas à lui donner une forme",
+    "expect_action": "investigate-need",
+    "note": "Creuser le besoin AVANT toute proposition, via AskUserQuestion (options = hypothèses)"
   },
   {
     "type": "should",
-    "prompt": "Propose des idées de fonctionnalités à partir des douleurs des personas",
-    "expect_action": "diverge-features",
-    "note": "Le skill doit GÉNÉRER, pas seulement transcrire"
+    "prompt": "Ok j'ai assez creusé, propose-moi quelque chose maintenant",
+    "expect_action": "propose-shape",
+    "note": "Proposer 1-3 formes via AskUserQuestion à aperçus ; déduire valeur + persona en silence"
   },
   {
     "type": "should",
-    "prompt": "On a fait le tour des idées ? coupe celles qui ne servent aucun persona",
-    "expect_action": "converge-features"
+    "prompt": "Cette forme me va, écris-la",
+    "expect_action": "write-stubs",
+    "note": "L'écriture ne se déclenche qu'après validation explicite d'une forme"
   },
   {
     "type": "should_not",
@@ -34,7 +37,7 @@
   },
   {
     "type": "should_not",
-    "prompt": "Spécifie en détail la feature de paiement",
+    "prompt": "Spécifie en détail la feature de paiement (PRD complet)",
     "expect_action": null,
     "competing_skill": "define"
   },
@@ -46,8 +49,8 @@
   },
   {
     "type": "ambiguous",
-    "prompt": "On manque d'idées",
-    "expect_action": "ask_clarification",
-    "note": "Vérifier que brief + personas existent (verrou), sinon rediriger vers /define ; sinon lancer la divergence"
+    "prompt": "/brainstorm",
+    "expect_action": "load-state",
+    "note": "Aucune idée fournie : pas de verrou brief/persona — demander quelle idée façonner (via AskUserQuestion), ne jamais rediriger vers /define"
   }
 ]

@@ -3,6 +3,37 @@
 All notable changes to the Snap plugin are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/), semver versioning.
 
+## [2.5.0] — 2026-06-18
+
+### Changed — `/brainstorm` reworked into idea-shaping
+- **New job: shape one idea, not catalogue many.** `/brainstorm` no longer diverges a wide
+  feature catalogue then converges it. It takes **one raw idea the user can't give a form
+  to**, digs the need to its root *with* them, then proposes a concrete shape they correct.
+  The user brings the raw material; the skill does the forming.
+- **Investigate before you propose.** A new `investigate-need` phase runs a real enquiry —
+  Jobs To Be Done, "5 whys", job-adjacency applied **silently** — that digs to the root
+  job/pain/outcome before any shape is offered. *Deep on substance, light on form.*
+- **`AskUserQuestion` end to end.** Every exchange (enquiry, proposed shape, go/no-go) runs
+  through `AskUserQuestion`, where **the options are the hypotheses the model advances** —
+  so each question both digs and contributes; "Other" always stays open. Shapes are
+  compared via `preview`.
+- **Output is a shaped stub.** `propose-shape` yields a 4-line shape — Intention / Form /
+  Slice 1 (smallest end-to-end deliverable) / Out-of-scope (explicit no-gos). On go,
+  `write-stubs` persists a `FEAT-*` (`depth: stub`) plus a 2-line shaping body (`## Tranche
+  1` + `## Hors-périmètre`, kept at two H2 so lint stays green). Persona pain and value
+  hypothesis are **deduced silently** — never asked, never shown.
+
+### Removed
+- **The hard brief+persona gate.** `/brainstorm` no longer blocks or redirects to `/define`
+  when a brief or persona is missing; `load-state` loads whatever exists (to deduce better)
+  and continues. An empty persona link on a stub is allowed (lint WARNs, never errors).
+
+### Internal
+- Actions renamed to match the new flow: `diverge-features` → `investigate-need`,
+  `converge-features` → `propose-shape`; reference `ideation-playbook.md` →
+  `shaping-playbook.md`. Eval scenarios realigned. Frontiers unchanged — `/define` (brief,
+  vision, personas, full PRD via `--spec`) and `/roadmap` (prioritization) are untouched.
+
 ## [2.4.0] — 2026-06-16
 
 ### Added — skippable Vision phase

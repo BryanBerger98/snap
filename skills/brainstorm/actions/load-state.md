@@ -1,30 +1,35 @@
-# 01 — Load state & gate
+# 01 — Load context & idea
 
-Load the entity map and enforce the precondition: brainstorming needs a confirmed Brief
-and at least one persona.
+Load whatever product context exists and capture the raw idea. **No gate** — a missing
+brief or persona never stops the session.
 
 ## Inputs
 - `project_dir` (required) — `${CLAUDE_PROJECT_DIR}`.
+- `idea` (required) — the raw idea the user wants to shape (argument or first message).
 
 ## Outputs
 
 ```
 ok: true
-brief: BRF-001
-personas: [PER-001, PER-002]
-existing_features: [ ... ]   # to avoid re-proposing duplicates
+idea: "<the raw idea, verbatim>"
+brief: BRF-001 | null            # used to deduce context, not required
+personas: [PER-001, ...] | []    # used to deduce pain + anchor the enquiry, not required
+north_star: "<…>" | null         # used to keep the shape laddering up, silently
+existing_features: [ ... ]       # near the idea — to avoid re-shaping a duplicate
 ```
-or `ok: false, redirect: /define`.
 
 ## Process
 1. Load config + digest per `${CLAUDE_PLUGIN_ROOT}/reference/product-model/core-io.md`.
-2. **Gate.** `BRF-001` exists **and** `briefConfirmedAt` set in
-   `.snap/define-progress.json` **and** ≥ 1 `PER-*`. Any miss ⇒ stop and tell the user to
-   run `/define` (`--new` then `--vision`).
-3. Collect existing `FEAT-*` so `diverge-features` doesn't re-propose them.
+   Pull the brief, personas and North Star **if they exist** — they feed the silent
+   deduction in `investigate-need`/`propose-shape`. Their absence is fine: continue,
+   never redirect to `/define`.
+2. **Capture the idea.** If the user gave a raw idea (argument or message), lock onto it.
+   If none was given, ask "what idea do you want to shape?" (via `AskUserQuestion` when
+   natural) and wait.
+3. Collect existing `FEAT-*` near the idea so we don't re-shape a duplicate.
 
 ## Test
 
-LLM assertion: with a confirmed brief + persona present, returns `ok: true` and the
-persona list; with a missing/unconfirmed brief or no persona, returns `redirect: /define`
-and does not proceed.
+LLM assertion: returns `ok: true` with the captured `idea` whether or not a brief/persona
+exists (never redirects to `/define`); when no idea was given, asks for one before
+proceeding.
